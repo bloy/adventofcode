@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import collections
 import re
 
 
@@ -10,18 +11,23 @@ class LightGrid(object):
     def __init__(self):
         print("initializing light grid")
         self._lights = {}
+        self._variable_lights = collections.Counter()
         for x in range(self.X_SIZE):
             for y in range(self.Y_SIZE):
                 self._lights[(x,y)] = False
 
     def toggle(self, position):
         self._lights[position] = not self._lights[position]
+        self._variable_lights[position] += 2
 
     def turn_on(self, position):
         self._lights[position] = True
+        self._variable_lights[position] += 1
 
     def turn_off(self, position):
         self._lights[position] = False
+        if self._variable_lights[position] > 0:
+            self._variable_lights[position] -= 1
 
     def run_instruction(self, line):
         print("running instruction: {0}".format(line.strip()))
@@ -47,6 +53,10 @@ class LightGrid(object):
     def lit_count(self):
         return len(self.lit_lights())
 
+    def total_brightness(self):
+        return sum([self._variable_lights[position]
+                    for position in self._variable_lights.keys()])
+
 
 if __name__ == '__main__':
     grid = LightGrid()
@@ -55,3 +65,4 @@ if __name__ == '__main__':
             grid.run_instruction(line)
 
     print("Lit light count:", grid.lit_count())
+    print("Total brightness:", grid.total_brightness())
