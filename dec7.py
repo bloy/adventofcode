@@ -103,10 +103,21 @@ class NodeList(object):
     def all_names(self):
         return self.names.keys()
 
+    def reset(self):
+        self.values = {}
+
+    def override(self, name, signal):
+        self.names[name] = ValueNode(self, str(signal), name)
+        self.reset()
+
 
 if __name__ == '__main__':
     with open('input/day_7') as lines:
         nodes = NodeList(lines)
 
     if 'a' in nodes.all_names():
-        print("a: {value}".format(value=nodes.get_value('a')))
+        value = nodes.get_value('a')
+        print("a:", value)
+        nodes.override('b', value)
+        value = nodes.get_value('a')
+        print("a:", value)
