@@ -36,6 +36,31 @@ class PathFinder(object):
                 shortest = path
         return shortest
 
+    def find_longest_helper(self, current_place, current_distance, visited_list):
+        possible_set = self.place_set.difference(set(visited_list))
+        if len(possible_set) == 0:
+            return (current_distance, visited_list)
+        longest = None
+        longest_distance = 0
+        for place in possible_set:
+            distance = self.places[current_place][place]
+            new_visited_list = visited_list + [place]
+            path = self.find_longest_helper(place, current_distance + distance,
+                                            new_visited_list)
+            if path[0] > longest_distance:
+                longest_distance = path[0]
+                longest = path
+        return longest
+
+    def find_longest(self):
+        longest_distance = 0
+        longest = None
+        for place in self.place_set:
+            path = self.find_longest_helper(place, 0, [place])
+            if path[0] > longest_distance:
+                longest_distance = path[0]
+                longest = path
+        return longest
 
     def find_shortest(self):
         shortest_distance = 65536
@@ -45,7 +70,6 @@ class PathFinder(object):
             if path[0] < shortest_distance:
                 shortest_distance = path[0]
                 shortest = path
-
         return shortest
 
 
@@ -59,3 +83,4 @@ if __name__ == '__main__':
         finder = PathFinder(lines)
 
     print(finder.find_shortest())
+    print(finder.find_longest())
