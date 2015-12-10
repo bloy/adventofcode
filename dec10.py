@@ -9,9 +9,9 @@ def look_and_say(input_str):
         output += char
     return "".join(output)
 
-def run_part1(start_string):
+def iterate_look_and_say(start_string, iterations):
     current_string = start_string
-    for x in range(41):
+    for x in range(iterations + 1):
         length = len(current_string)
         if length > 80:
             print (x, ": big :", length)
@@ -19,7 +19,14 @@ def run_part1(start_string):
             print(x, ":", current_string, ":", length)
         current_string = look_and_say(current_string)
 
+def run_part1(start_string):
+    iterate_look_and_say(start_string, 40)
+
+def run_part2(start_string):
+    iterate_look_and_say(start_string, 50)
+
 
 if __name__ == '__main__':
     DAY_10_INPUT = '3113322113'
     run_part1(DAY_10_INPUT)
+    run_part2(DAY_10_INPUT)
