@@ -43,8 +43,21 @@ def find_best(guests, matrix):
     return best
 
 
+def add_self_to_table(guests, matrix):
+    for guest in guests:
+        matrix[('me', guest)] = 0
+        matrix[(guest, 'me')] = 0
+    guests.add('me')
+    return(guests, matrix)
+
+
 if __name__ == '__main__':
     with open('input/day_13') as in_lines:
         guests, matrix = parse_lines(in_lines)
     best = find_best(guests, matrix)
     pprint.pprint(best)
+
+    guests, matrix = add_self_to_table(guests, matrix)
+    best_with_me = find_best(guests, matrix)
+    pprint.pprint(best_with_me)
+    print("difference:", best_with_me[0] - best[0])
