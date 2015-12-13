@@ -22,21 +22,29 @@ def parse_lines(lines):
     return guests, matrix
 
 
+def seating_combinations(seating):
+    return itertools.chain(zip(seating, seating[1:] + (seating[0], )),
+                           zip(seating[1:] + (seating[0], ), seating))
+
+
+def seating_total(seating, matrix):
+    return sum(matrix[pair] for pair in seating_combinations(seating))
+
+
+def all_seatings(guests, matrix):
+    return ((seating_total(seating, matrix), seating)
+            for seating in itertools.permutations(guests))
+
+def find_best(guests, matrix):
+    best = None
+    for candidate in all_seatings(guests, matrix):
+        if best is None or best[0] < candidate[0]:
+            best = candidate
+    return best
+
+
 if __name__ == '__main__':
-    in_lines = [
-        'Alice would gain 54 happiness units by sitting next to Bob.',
-        'Alice would lose 79 happiness units by sitting next to Carol.',
-        'Alice would lose 2 happiness units by sitting next to David.',
-        'Bob would gain 83 happiness units by sitting next to Alice.',
-        'Bob would lose 7 happiness units by sitting next to Carol.',
-        'Bob would lose 63 happiness units by sitting next to David.',
-        'Carol would lose 62 happiness units by sitting next to Alice.',
-        'Carol would gain 60 happiness units by sitting next to Bob.',
-        'Carol would gain 55 happiness units by sitting next to David.',
-        'David would gain 46 happiness units by sitting next to Alice.',
-        'David would lose 7 happiness units by sitting next to Bob.',
-        'David would gain 41 happiness units by sitting next to Carol.',
-    ]
-    guests, matrix = parse_lines(in_lines)
-    pprint.pprint(guests)
-    pprint.pprint(matrix)
+    with open('input/day_13') as in_lines:
+        guests, matrix = parse_lines(in_lines)
+    best = find_best(guests, matrix)
+    pprint.pprint(best)
