@@ -13,6 +13,16 @@ def get_distance(reindeer, seconds):
                 min(fly_time, seconds % cycle_time)) * speed
     return distance
 
+def part1(data):
+    best = 0
+    for reindeer in data:
+        distance = get_distance(reindeer, 2503)
+        if best < distance:
+            best = distance
+        print("reindeer:", reindeer.name,
+              "distance:", distance)
+    print best
+
 
 if __name__ == '__main__':
     data = (
@@ -26,8 +36,4 @@ if __name__ == '__main__':
         Reindeer('Vixen', 20, 4, 75),
         Reindeer('Dancer', 7, 20, 119),
     )
-    for seconds in (2503,):
-        for reindeer in data:
-            print("reindeer:", reindeer.name,
-                  "time:", seconds,
-                  "distance:", get_distance(reindeer, seconds))
+    part1(data)
