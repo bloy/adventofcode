@@ -16,10 +16,17 @@ def get_distance(reindeer, seconds):
 
 if __name__ == '__main__':
     data = (
-        Reindeer('Comet', 14, 10, 127),
-        Reindeer('Dancer', 16, 11, 162),
+        Reindeer('Rudolph', 22, 8, 165),
+        Reindeer('Cupid', 8, 17, 114),
+        Reindeer('Prancer', 18, 6, 103),
+        Reindeer('Donner', 25, 6, 145),
+        Reindeer('Dasher', 11, 12, 125),
+        Reindeer('Comet', 21, 6, 121),
+        Reindeer('Blitzen', 18, 3, 50),
+        Reindeer('Vixen', 20, 4, 75),
+        Reindeer('Dancer', 7, 20, 119),
     )
-    for seconds in (959, 963, 1000):
+    for seconds in (2503,):
         for reindeer in data:
             print("reindeer:", reindeer.name,
                   "time:", seconds,
