@@ -23,6 +23,19 @@ def part1(data):
               "distance:", distance)
     print best
 
+def part2(data):
+    points = collections.Counter()
+    for second in range(2503):
+        leader = None
+        leader_distance = 0
+        for deer in data:
+            distance = get_distance(deer, second+1)
+            if leader_distance < distance:
+                leader_distance = distance
+                leader = deer.name
+        points[leader] += 1
+    print(points)
+
 
 if __name__ == '__main__':
     data = (
@@ -37,3 +50,4 @@ if __name__ == '__main__':
         Reindeer('Dancer', 7, 20, 119),
     )
     part1(data)
+    part2(data)
