@@ -23,16 +23,27 @@ def find_score(permutation, ingredients):
     total = reduce(lambda x,y: x * y, totals)
     return total
 
+def find_calories(permutation, ingredients):
+    amounts = [amount * ingredient.calories
+               for (amount, ingredient)
+               in zip(permutation, ingredients)]
+    return sum(amounts)
+
 
 def find_optimal_ingredients(limit, ingredients):
     best = 0
+    best_lite = 0
     best_permutation = None
+    best_lite_permutation = None
     for permutation in permutations(limit, ingredients):
         score = find_score(permutation, ingredients)
+        if find_calories(permutation, ingredients) == 500 and score > best_lite:
+            best_lite_permutation = zip(permutation, ingredients)
+            best_lite = score
         if score > best:
             best_permutation = zip(permutation, ingredients)
             best = score
-    return (best, best_permutation)
+    return (best, best_permutation, best_lite, best_lite_permutation)
 
 if __name__ == '__main__':
     ingredients = (
