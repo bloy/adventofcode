@@ -17,18 +17,23 @@ def neighbors(point, size):
      if (x + point[0] >= 0 and x + point[0] < size and
          y + point[1] >= 0 and y + point[1] < size)}
 
-def step(board, size):
+def step(board, size, broken_corners=False):
     next_step = Counter(neighbor for cell in board
                      for neighbor in neighbors(cell, size))
-    return {cell for cell in next_step
+    board = {cell for cell in next_step
             if next_step[cell] == 3 or
             (next_step[cell] == 2 and cell in board)}
+    if broken_corners:
+        board.add((0,0))
+        board.add((0,size-1))
+        board.add((size-1,0))
+        board.add((size-1,size-1))
+    return board
 
 if __name__ == '__main__':
     with open('input/day_18') as lines:
         board = parse_lines(lines)
     size = 100
     for x in range(100):
-        board = step(board, size)
-    pprint.pprint(board)
+        board = step(board, size, True)
     pprint.pprint(len(board))
