@@ -52,7 +52,9 @@ if __name__ == '__main__':
     boss = Character('Boss', 109, 8, 2)
 
     cheapest_cost = 65535
+    most_cost = 0
     cheapest_set = None
+    most_set = None
 
     equipment_sets = (equipment_set for equipment_set
                       in itertools.product(WEAPONS, ARMOR, RINGS, RINGS)
@@ -65,9 +67,14 @@ if __name__ == '__main__':
         hero = Character('Hero', 100, damage, armor)
         hero_turns = attacker_turns(hero, boss)
         boss_turns = attacker_turns(boss, hero)
+        if cost > most_cost and hero_turns > boss_turns:
+            most_cost = cost
+            most_set = equipment_set
         if cost < cheapest_cost and hero_turns <= boss_turns:
             cheapest_cost = cost
             cheapest_set = equipment_set
     pprint.pprint(cheapest_cost)
     pprint.pprint(cheapest_set)
+    pprint.pprint(most_cost)
+    pprint.pprint(most_set)
 
