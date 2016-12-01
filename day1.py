@@ -22,25 +22,34 @@ facings = {
     'W': complex(0, -1),
 }
 
-facing = 'N'
-position = complex(0, 0)
+def print_result(position):
+    print(repr(position))
+    print("total taxicab distance: {}".format(abs(position.real) + abs(position.imag)))
 
-visited = set()
-visited.add(position)
-first2 = None
 
-for instruction in input_data:
-    (turn, distance) = (instruction[0], int(instruction[1:]))
-    facing = facing_machine[facing][turn]
-    position = position + distance * facings[facing]
-    if position in visited and first2 is None:
-        first2 = position
-    if position in visited:
-        print("visited ({}, {}) again".format(position.real, position.imag))
-    visited.add(position)
+def solve1(instructions, start_facing='N', start_position=complex(0, 0)):
+    facing = start_facing
+    position = start_position
+    for instruction in input_data:
+        (turn, distance) = (instruction[0], int(instruction[1:]))
+        facing = facing_machine[facing][turn]
+        position = position + distance * facings[facing]
+    print_result(position)
 
-print(repr(position))
-print("total taxicab distance: {}".format(abs(position.real) + abs(position.imag)))
+def solve2(instructions, start_facing='N', start_position=complex(0, 0)):
+    facing = start_facing
+    position = start_position
+    visited = set([position])
+    for instruction in input_data:
+        (turn, distance) = (instruction[0], int(instruction[1:]))
+        facing = facing_machine[facing][turn]
+        for i in range(distance):
+            position = position + facings[facing]
+            if position in visited:
+                print_result(position)
+                return
+            visited.add(position)
 
-print(repr(first2))
-print("total taxicab distance: {}".format(abs(first2.real) + abs(first2.imag)))
+if __name__ == '__main__':
+    solve1(input_data)
+    solve2(input_data)
