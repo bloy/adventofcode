@@ -18,7 +18,17 @@ def solve1(data):
 
 
 def solve2(data):
-    return 0
+    generator = filter(lambda x: x[0:5] == '00000',
+                       (md5(data + str(num)) for num in itertools.count()))
+    value = list('________')
+    for md5sum in generator:
+        (position, replacement) = (md5sum[5], md5sum[6])
+        if position in '01234567' and value[int(position)] == '_':
+            value[int(position)] = replacement
+        print("".join(value), position, replacement, end="\r")
+        if '_' not in value:
+            print()
+            return "".join(value)
 
 
 if __name__ == '__main__':
