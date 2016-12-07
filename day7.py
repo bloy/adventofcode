@@ -3,21 +3,28 @@
 import pprint
 import re
 
-good_sequence_regexp = re.compile(r'(\w)(?!\1)(\w)\2\1')
-bad_sequence_regexp = re.compile(r'\[\w*(\w)(?!\1)(\w)\2\1\w*\]')
-
-part2_regex1 = re.compile(r'\[\w*(\w)(?!\1)(\w)\1\w*\]\w*\2\1\2')
-part2_regex2 = re.compile(r'(\w)(?!\1)(\w)\1\w*\[\w*\2\1\2\w*\]')
-
 
 def solve1(data):
+    good_sequence_regexp = re.compile(r'(\w)(?!\1)(\w)\2\1')
+    bad_sequence_regexp = re.compile(r'\[\w*(\w)(?!\1)(\w)\2\1\w*\]')
     return len(list(d for d in data
                     if good_sequence_regexp.search(d) and
                     not bad_sequence_regexp.search(d)))
 
 
+def has_ssl(ip):
+    for out_of_bracket in re.split('\[\w*\]', ip):
+        for aba in re.finditer(r'(?=((\w)(?!\2)\w\2))', out_of_bracket):
+            aba = aba.group(1)
+            bab = '{0}{1}{2}'.format(aba[1], aba[0], aba[1])
+            if any((hypernet.group(0).find(bab) > -1)
+                   for hypernet in re.finditer(r'\[\w*\]', ip)):
+                return True
+    return False
+
+
 def solve2(data):
-    return len(list(d for d in data if part2_regex1.search(d) or part2_regex2.search(d)))
+    return len(list(d for d in data if has_ssl(d)))
 
 if __name__ == '__main__':
     with open('day7_input.txt') as f:
