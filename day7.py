@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 
 import pprint
+import re
+
+good_sequence_regexp = re.compile(r'(\w)(?!\1)(\w)\2\1')
+bad_sequence_regexp = re.compile(r'\[[^\[]*(\w)(?!\1)(\w)\2\1[^\]*]\]')
 
 def solve1(data):
-    pass
+    return (list(d for d in data
+                    if good_sequence_regexp.search(d) and
+                    not bad_sequence_regexp.search(d)))
 
 def solve2(data):
     pass
@@ -12,10 +18,10 @@ if __name__ == '__main__':
     with open('day7_input.txt') as f:
         data = [line for line in f.read().split("\n") if line != '']
     data = [
-        "abba[mnop]qrst"  # yes
-        "abcd[bddb]xyyx"  # no
-        "aaaa[qwer]tyui"  # no
-        "ioxxoj[asdfgh]zxcvbni" # yes
+        "abba[mnop]qrst",  # yes
+        "abcd[bddb]xyyx", # no
+        "aaaa[qwer]tyui",  # no
+        "ioxxoj[asdfgh]zxcvbni", # yes
     ]
 
     pprint.pprint(solve1(data))
