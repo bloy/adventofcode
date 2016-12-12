@@ -20,7 +20,6 @@ def parse_instruction(instr):
         return None
 
 
-
 def solve1(instructions):
     registers = {
         'a': 0,
@@ -40,14 +39,17 @@ def solve1(instructions):
                 registers[arg2] = arg1
             else:
                 registers[arg2] = registers[arg1]
+            pc += 1
         elif keyword in ('inc', 'dec'):
             amount = 1 if keyword == 'inc' else -1
             registers[arg1] += amount
+            pc += 1
         elif keyword == 'jnz':
             check = arg1 if isinstance(arg1, int) else registers[arg1]
-            if check != 0:
-                pc += (int(arg2) - 1)
-        pc += 1
+            if check == 0:
+                pc += 1
+            else:
+                pc += (int(arg2))
     return registers
 
 
@@ -57,6 +59,7 @@ def solve2(data):
 
 if __name__ == '__main__':
     data = [
+        "cpy 1 a",
         "cpy 1 b",
         "cpy 26 d",
         "jnz c 2",
