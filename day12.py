@@ -20,7 +20,7 @@ def parse_instruction(instr):
         return None
 
 
-def solve1(instructions):
+def run_program(instructions):
     registers = {
         'a': 0,
         'b': 0,
@@ -28,12 +28,15 @@ def solve1(instructions):
         'd': 0
     }
     pc = 0
+    instruction_count = 0
     while pc < len(instructions):
         instr = parse_instruction(instructions[pc])
         arg1 = instr['arg1']
         arg2 = instr['arg2']
         keyword = instr['instr']
-        print(pc, keyword, arg1, arg2, registers)
+        if instruction_count == 0:
+            print(pc, keyword, arg1, arg2, registers)
+        instruction_count = (instruction_count + 1) % 100000
         if keyword == 'cpy':
             if isinstance(arg1, int):
                 registers[arg2] = arg1
@@ -51,10 +54,6 @@ def solve1(instructions):
             else:
                 pc += (int(arg2))
     return registers
-
-
-def solve2(data):
-    pass
 
 
 if __name__ == '__main__':
@@ -92,5 +91,8 @@ if __name__ == '__main__':
         # "jnz a 2",
         # "dec a",
     # ]
-    print(solve1(data))
-    print(solve2(data))
+    print(run_program(data))
+
+    part2_data = ['cpy 1 c'] + data
+
+    print(run_program(part2_data))
