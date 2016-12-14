@@ -1,8 +1,28 @@
 #!/bin/env python3
 
 
+import hashlib
+import re
+import pprint
+
+
+class Calculator(object):
+    def __init__(self, salt):
+        self.salt = salt
+        self.hashes = {}
+
+    def get_hash(self, index):
+        if index not in self.hashes:
+            hasher = hashlib.md5()
+            hasher.update((self.salt + str(index)).encode('utf-8'))
+            self.hashes[index] = hasher.hexdigest()
+        return self.hashes[index]
+
+
 def solve1(data):
-    pass
+    triple_regex = re.compile(r'(.)\1\1')
+    calc = Calculator(data)
+    return [(i, calc.get_hash(i), triple_regex.search(calc.get_hash(i))) for i in range(20)]
 
 
 def solve2(data):
@@ -12,5 +32,6 @@ def solve2(data):
 if __name__ == '__main__':
 
     data = 'zpqevtbw'
-    print(solve1(data))
-    print(solve2(data))
+    data = 'abc'
+    pprint.pprint(solve1(data))
+    pprint.pprint(solve2(data))
