@@ -20,7 +20,7 @@ def solve(row, room_size):
 
 if __name__ == '__main__':
     row = '^.^^^..^^...^.^..^^^^^.....^...^^^..^^^^.^^.^^^^^^^^.^^.^^^^...^^...^^^^.^.^..^^..^..^.^^.^.^.......'
-    room_size = 40
+    room_size = 400000
     # row = '.^^.^.^^^^'
     # room_size = 10
     print(solve(row, room_size))
