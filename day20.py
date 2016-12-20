@@ -26,4 +26,3 @@ if __name__ == '__main__':
     allowed = solve(data)
     print(allowed[0])
     print(len(allowed))
-
