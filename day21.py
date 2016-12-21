@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import itertools
+
 def swap_position(word, x, y):
     word[x], word[y] = word[y], word[x]
     return word
@@ -47,30 +49,21 @@ def parse_line(line):
         return (move_pos, int(words[2]), int(words[5]))
 
 def solve(word, data):
-    print(word)
     word = list(word)
     for instruction in data:
-        print(instruction[0].__name__, instruction[1:])
         word = instruction[0](word, *instruction[1:])
-        print(word)
     return "".join(word)
+
+def reverse_solve(scrambled, data):
+    for word in itertools.permutations(scrambled):
+        if solve(word, data) == scrambled:
+            return "".join(word)
 
 if __name__ == '__main__':
     with open('day21_input.txt') as f:
         data = [parse_line(line) for line in f.readlines() if line]
     word = 'abcdefgh'
 
-    # data = [
-        # (swap_position, 4, 0),
-        # (swap_letter, 'd', 'b'),
-        # (reverse_pos, 0, 4),
-        # (rotate_steps, 'left', 1),
-        # (move_pos, 1, 4),
-        # (move_pos, 3, 0),
-        # (rotate_pos, 'b'),
-        # (rotate_pos, 'd'),
-    # ]
-    # word = 'abcde'
-
     word = solve(word, data)
     print(word)
+    print(reverse_solve('fbgdceah', data))
