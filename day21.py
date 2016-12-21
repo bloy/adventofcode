@@ -1,21 +1,40 @@
 #!/usr/bin/env python3
 
 def swap_position(word, x, y):
+    letters = list(word)
+    letters[x], letters[y] = letters[y], letters[x]
+    word = "".join(letters)
     return word
 
 def swap_letter(word, x, y):
-    return word
+    return swap_position(word, word.find(x), word.find(y))
 
 def rotate_steps(word, direction, x):
+    x = x % len(word)
+    if direction == 'right':
+        x = len(word) - x
+    if x == 0 or x == len(word):
+        return word
+    letters = list(word)
+    letters = letters[x:] + letters[:x]
+    word = "".join(letters)
     return word
 
 def rotate_pos(word, x):
-    return word
+    index = word.find(x)
+    rotate = (index + 1) if index < 4 else (index + 2)
+    return rotate_steps(word, 'left', rotate)
 
 def reverse_pos(word, x, y):
+    letters = list(word)
+    letters[x:y+1] = reversed(letters[x:y+1])
+    word = "".join(letters)
     return word
 
 def move_pos(word, x, y):
+    letters = list(word)
+    letters[x:x+1], letters[y:y] = [], letters[x:x+1]
+    word = "".join(letters)
     return word
 
 def parse_line(line):
@@ -36,8 +55,11 @@ def parse_line(line):
         return (move_pos, int(words[2]), int(words[5]))
 
 def solve(word, data):
+    print(word)
     for instruction in data:
+        print(instruction)
         word = instruction[0](word, *instruction[1:])
+        print(word)
     return word
 
 if __name__ == '__main__':
