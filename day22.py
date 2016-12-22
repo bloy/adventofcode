@@ -30,8 +30,22 @@ class Disc(collections.namedtuple('Disc', 'position size used avail')):
                r'(?P<used>\d+)T\s+(?P<avail>\d+)T\s+(?P<percent>\d+)%\s*')
         match = re.match(rgx, line)
         groups = match.groupdict()
-        return cls(position=(groups['x'], groups['y']), size=groups['size'],
-                   used=groups['used'], avail=groups['avail'])
+        return cls(position=(int(groups['x']), int(groups['y'])), size=int(groups['size']),
+                   used=int(groups['used']), avail=int(groups['avail']))
+
+
+def viable_pairs(discs):
+    for a, b in itertools.combinations(discs, 2):
+        if ((a.used != 0 and a.used <= b.avail) or (b.used != 0 and b.used <= a.avail)):
+            print("{0}\n{1} is a viable pair\n".format(a,b))
+            yield (a, b)
+
+
+def num_viable_pairs(discs):
+    count = 0
+    for pair in viable_pairs(discs):
+        count += 1
+    return count
 
 
 if __name__ == '__main__':
@@ -39,3 +53,6 @@ if __name__ == '__main__':
         data = tuple([Disc.from_line(line) for line in f.readlines()
                 if line and 'node' in line])
 
+    data = sorted(data, key=lambda x: x.position)
+    pprint.pprint(data)
+    #print(num_viable_pairs(data))
