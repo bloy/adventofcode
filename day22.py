@@ -24,18 +24,22 @@ class Disc(collections.namedtuple('Disc', 'position size used avail')):
     def map_mark(self):
         if self.used == 0:
             return '_ '
-        if self.used > 100:
+        if self.is_wall:
             return '# '
         return '. '
 
+    @property
+    def is_wall(self):
+        return self.used > 100
+
     def __repr__(self):
-        return "Disc(position={0}, size={1}, used={2}, avail={3}, is_goal={4})".format(
-            repr(self.position), repr(self.size), repr(self.used), repr(self.avail), repr(self.is_goal))
+        return "Disc(position={0}, size={1}, used={2}, avail={3})".format(
+            repr(self.position), repr(self.size), repr(self.used), repr(self.avail))
 
     def empty(self):
         return self.__class__(self.position, self.size, 0, self.size)
 
-    def fill(self, used, is_goal):
+    def fill(self, used) :
         return self.__class__(self.position, self.size, used, self.size - used)
 
     @classmethod
@@ -72,6 +76,10 @@ class DiscArray(object):
         self.max_y = len(self.discs)-1
         self.access_point = (0, 0)
         self.goal = (self.max_x, 0)
+        for row in self.discs:
+            for disc in row:
+                if disc.used == 0:
+                    self.empty = disc.position
 
     def __str__(self):
         return "\n".join(
@@ -86,6 +94,36 @@ class DiscArray(object):
         else:
             return disc.map_mark
 
+    def solve(self):
+        count = 0
+        while self.goal != self.access_point:
+            count += 1
+            if self.empty[0] == self.goal[0] - 1 and self.empty[1] == 0:
+                self.goal, self.empty = self.empty, self.goal
+                # left of goal
+            elif self.empty[0] < self.goal[0]:
+                # somewhere left of goal
+                if self.empty[1] == 0:
+                    # on top row
+                    self.empty = (self.empty[0] + 1, 0)
+                else:
+                    # not on top row
+                    if self.discs[self.empty[1] - 1][self.empty[0]].is_wall:
+                        # below the wall
+                        self.empty = (self.empty[0] - 1, self.empty[1])
+                    else:
+                        # move up when able
+                        self.empty = (self.empty[0], self.empty[1] - 1)
+            elif self.empty[0] >= self.goal[0] and self.empty[1] == self.goal[1] + 1:
+                # down and next to or right of goal
+                self.empty = (self.empty[0] - 1, self.empty[1])
+            elif self.empty[0] > self.goal[0] and self.empty[1] == self.goal[1]:
+                # right of the goal
+                self.empty = (self.empty[0], self.empty[1] + 1)
+        return count
+
+
+
 
 if __name__ == '__main__':
     with open('day22_input.txt') as f:
@@ -94,4 +132,4 @@ if __name__ == '__main__':
 
     print(num_viable_pairs(data))
     discs = DiscArray(data)
-    print(discs)
+    print(discs.solve())
