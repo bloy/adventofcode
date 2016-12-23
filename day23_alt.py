@@ -69,8 +69,24 @@ class Machine(object):
 
     def run(self):
         for instr in self.next_instruction():
-            print(instr, self)
-            self.keywords[instr.keyword](instr.arg1, instr.arg2)
+            if self.pc == 4 and (instr.keyword == 'cpy' and
+                                 self.instructions[5].keyword == 'inc' and
+                                 self.instructions[6].keyword == 'dec' and
+                                 self.instructions[7].keyword == 'jnz' and
+                                 self.instructions[8].keyword == 'dec' and
+                                 self.instructions[9].keyword == 'jnz'):
+                print("Multiplication hack", self)
+                target = self.instructions[self.pc+1].arg1
+                source1 = instr.arg1
+                source2 = self.instructions[self.pc+4].arg1
+                tmp = instr.arg2
+                self.registers[target] = self.registers[source1] * self.registers[source2]
+                self.registers[tmp] = 0
+                self.registers[source2] = 0
+                self.pc += 6
+            else:
+                print(instr, self)
+                self.keywords[instr.keyword](instr.arg1, instr.arg2)
         return self.registers
 
     def _cpy(self, arg1, arg2):
@@ -110,17 +126,17 @@ class Machine(object):
 
 if __name__ == '__main__':
     data = [
-        "cpy a b",
-        "dec b",
-        "cpy a d",
-        "cpy 0 a",
-        "cpy b c",
-        "inc a",
-        "dec c",
-        "jnz c -2",
-        "dec d",
-        "jnz d -5",
-        "dec b",
+        "cpy a b", # 0
+        "dec b",   # 1
+        "cpy a d", # 2
+        "cpy 0 a", # 3
+        "cpy b c", # 4 start of mul
+        "inc a",   # 5
+        "dec c",   # 6
+        "jnz c -2", # 7
+        "dec d",   # 8
+        "jnz d -5",# 9 end of mul
+        "dec b",   # 10
         "cpy b c",
         "cpy c d",
         "dec d",
