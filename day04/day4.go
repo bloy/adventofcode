@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -14,6 +15,7 @@ func getInput() []string {
 		panic(err)
 	}
 	strs := strings.Split(string(content), "\n")
+	sort.Strings(strs)
 	return strs
 }
 
