@@ -8,6 +8,10 @@ import (
 	"strings"
 )
 
+type Point struct {
+	x, y int
+}
+
 type Claim struct {
 	num, x, y, width, height int
 }
@@ -40,7 +44,21 @@ func getInput() []Claim {
 }
 
 func runPart1(input []Claim) {
-	fmt.Println("part 1 ", "N/A")
+	fabric := make(map[Point]int)
+	for _, claim := range input {
+		for x := claim.x; x < claim.x+claim.width; x++ {
+			for y := claim.y; y < claim.y+claim.height; y++ {
+				fabric[Point{x, y}] = fabric[Point{x, y}] + 1
+			}
+		}
+	}
+	counter := 0
+	for _, value := range fabric {
+		if value > 1 {
+			counter++
+		}
+	}
+	fmt.Println("part 1 ", counter)
 }
 
 func runPart2(input []Claim) {
