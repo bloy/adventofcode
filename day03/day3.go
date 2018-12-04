@@ -43,6 +43,13 @@ func getInput() []Claim {
 	return claims
 }
 
+func overlap(claim1, claim2 Claim) bool {
+	return claim1.x < claim2.x+claim2.width &&
+		claim1.x+claim1.width > claim2.x &&
+		claim1.y < claim2.y+claim2.height &&
+		claim1.y+claim1.height > claim2.y
+}
+
 func runPart1(input []Claim) {
 	fabric := make(map[Point]int)
 	for _, claim := range input {
@@ -62,7 +69,24 @@ func runPart1(input []Claim) {
 }
 
 func runPart2(input []Claim) {
-	fmt.Println("part 1 ", "N/A")
+	var answer int
+	for _, claim1 := range input {
+		safe := true
+		for _, claim2 := range input {
+			if claim1.num == claim2.num {
+				continue
+			}
+			if overlap(claim1, claim2) {
+				safe = false
+				break
+			}
+		}
+		if safe {
+			answer = claim1.num
+			break
+		}
+	}
+	fmt.Println("part 2 ", answer)
 }
 
 func main() {
