@@ -6,20 +6,21 @@ import (
 	"strings"
 )
 
-func getInput() []string {
+func getInput() string {
 	content, err := ioutil.ReadFile("input.txt")
 	if err != nil {
 		panic(err)
 	}
-	strs := strings.Split(string(content), "\n")
-	return strs
+	str := string(content)
+	str = `dabAcCaCBAcCcaDA`
+	return str
 }
 
-func runPart1(input []string) {
+func runPart1(input string) {
 	fmt.Println("part 1 ")
 }
 
-func runPart2(input []string) {
+func runPart2(input string) {
 	fmt.Println("part 2 ")
 }
 
