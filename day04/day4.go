@@ -9,24 +9,6 @@ import (
 	"strings"
 )
 
-const testString string = `[1518-11-01 00:00] Guard #10 begins shift
-[1518-11-01 00:05] falls asleep
-[1518-11-01 00:25] wakes up
-[1518-11-01 00:30] falls asleep
-[1518-11-01 00:55] wakes up
-[1518-11-01 23:58] Guard #99 begins shift
-[1518-11-02 00:40] falls asleep
-[1518-11-02 00:50] wakes up
-[1518-11-03 00:05] Guard #10 begins shift
-[1518-11-03 00:24] falls asleep
-[1518-11-03 00:29] wakes up
-[1518-11-04 00:02] Guard #99 begins shift
-[1518-11-04 00:36] falls asleep
-[1518-11-04 00:46] wakes up
-[1518-11-05 00:03] Guard #99 begins shift
-[1518-11-05 00:45] falls asleep
-[1518-11-05 00:55] wakes up`
-
 type event struct {
 	minute int
 	sleep  bool
@@ -46,7 +28,6 @@ func getInput() []day {
 		panic(err)
 	}
 	strs := strings.Split(string(content), "\n")
-	strs = strings.Split(testString, "\n")
 	sort.Strings(strs)
 	days := make([]day, 0)
 	currentDay := day{}
@@ -55,6 +36,9 @@ func getInput() []day {
 	for _, str := range strs {
 		fmt.Println(str)
 		matches := matcher.FindStringSubmatch(str)
+		if len(matches) == 0 {
+			continue
+		}
 		date := matches[1]
 		minute, err := strconv.Atoi(matches[2])
 		if err != nil {
@@ -74,7 +58,6 @@ func getInput() []day {
 					days = append(days, currentDay)
 				}
 				currentDay = day{date, currentGuard, make([]event, 0)}
-				currentDay.events = append(currentDay.events, event{0, false})
 				currentDate = date
 			}
 			sleep := false
@@ -85,37 +68,115 @@ func getInput() []day {
 		}
 	}
 	days = append(days, currentDay)
-	fmt.Println("Date        ID     Minute")
-	fmt.Println("                   000000000011111111112222222222333333333344444444445555555555")
-	fmt.Println("                   012345678901234567890123456789012345678901234567890123456789")
-	for _, thisDay := range days {
-		fmt.Printf("%s  #%4d  ", thisDay.date, thisDay.guard)
-		min := 0
-		c := "."
-		for _, e := range thisDay.events {
-			for ; min < e.minute; min++ {
-				fmt.Printf("%s", c)
-			}
-			if e.sleep {
-				c = "#"
-			} else {
-				c = "."
-			}
-		}
-		for ; min < 60; min++ {
-			fmt.Printf("%s", c)
-		}
-		fmt.Println("")
-	}
 	return days
 }
 
 func runPart1(input []day) {
-	fmt.Println("part 1 ")
+	guardTotals := make(map[int]int)
+	guardMinutes := make(map[int]map[int]int)
+	fmt.Println("\n")
+	fmt.Println("Date        ID     Minute")
+	fmt.Println("                   000000000011111111112222222222333333333344444444445555555555")
+	fmt.Println("                   012345678901234567890123456789012345678901234567890123456789")
+	for _, d := range input {
+		fmt.Printf("%s  #%4d  ", d.date, d.guard)
+		guard := d.guard
+		min := 0
+		sleeping := false
+		if guardMinutes[guard] == nil {
+			guardMinutes[guard] = make(map[int]int)
+		}
+		for _, e := range d.events {
+			diff := e.minute - min
+			if sleeping {
+				guardTotals[guard] = guardTotals[guard] + diff
+			}
+			for i := min; i < e.minute; i++ {
+				if sleeping {
+					guardMinutes[guard][i] = guardMinutes[guard][i] + 1
+					fmt.Print("#")
+				} else {
+					fmt.Print(".")
+				}
+			}
+			if e.sleep {
+				sleeping = true
+			} else {
+				sleeping = false
+			}
+			min = e.minute
+		}
+		if sleeping {
+			diff := 60 - min
+			guardTotals[guard] = guardTotals[guard] + diff
+		}
+		for i := min; i < 60; i++ {
+			if sleeping {
+				guardMinutes[guard][i] = guardMinutes[guard][i] + 1
+				fmt.Print("$")
+			} else {
+				fmt.Print(".")
+			}
+		}
+		fmt.Println()
+	}
+	maxTotal := 0
+	maxGuard := 0
+	for guard, total := range guardTotals {
+		if total > maxTotal {
+			maxGuard = guard
+			maxTotal = total
+		}
+	}
+	maxMinute := -1
+	maxTotal = 0
+	for min, total := range guardMinutes[maxGuard] {
+		if total > maxTotal {
+			maxMinute = min
+			maxTotal = total
+		}
+	}
+	fmt.Println("part 1 ", maxGuard, maxMinute, maxGuard*maxMinute)
 }
 
 func runPart2(input []day) {
-	fmt.Println("part 2 ")
+	// this time it's minute -> guard -> count
+	var guardMinutes [60]map[int]int
+	for _, d := range input {
+		guard := d.guard
+		min := 0
+		sleeping := false
+		for _, e := range d.events {
+			for i := min; i < e.minute; i++ {
+				if guardMinutes[i] == nil {
+					guardMinutes[i] = make(map[int]int)
+				}
+				if sleeping {
+					guardMinutes[i][guard] = guardMinutes[i][guard] + 1
+				}
+			}
+			sleeping = e.sleep
+			min = e.minute
+		}
+		if sleeping {
+			for i := min; i < 60; i++ {
+				guardMinutes[i][guard] = guardMinutes[i][guard] + 1
+			}
+		}
+	}
+	maxTotal := -1
+	maxMinute := -1
+	maxGuard := -1
+	for i := 0; i < 60; i++ {
+		for guard, total := range guardMinutes[i] {
+			if total > maxTotal {
+				maxTotal = total
+				maxMinute = i
+				maxGuard = guard
+			}
+		}
+	}
+	fmt.Println("part 2 ", maxTotal, maxMinute, maxGuard, maxMinute*maxGuard)
 }
 
 func main() {
