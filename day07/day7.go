@@ -31,8 +31,39 @@ func getInput() depType {
 }
 
 func runPart1(input depType) {
-	fmt.Println(input)
-	fmt.Println("part 1 ")
+	var result []string = []string{}
+	var workingDeps depType
+	workingDeps = input
+	for len(workingDeps) > 0 {
+		var next string
+		next = "_"
+		for step, deps := range workingDeps {
+			if len(deps) == 0 && step < next {
+				next = step
+			}
+		}
+		result = append(result, next)
+		var newWorkingDeps depType = make(depType)
+		for step, deps := range workingDeps {
+			if step == next {
+				continue
+			}
+			delIndex := -1
+			for i, depStep := range deps {
+				if depStep == next {
+					delIndex = i
+					break
+				}
+			}
+			if delIndex == -1 {
+				newWorkingDeps[step] = deps[:]
+			} else {
+				newWorkingDeps[step] = append(deps[:delIndex], deps[delIndex+1:]...)
+			}
+		}
+		workingDeps = newWorkingDeps
+	}
+	fmt.Println("part 1 ", strings.Join(result, ""))
 }
 
 func runPart2(input depType) {
