@@ -120,9 +120,6 @@ func runPart1(input []Point) {
 	bounds := boundingBox(input, 0)
 	pointCounts := make(map[int]int)
 	invalidPoints := make(map[int]bool)
-	//for i, p := range input {
-	//fmt.Printf("%d: %v\n", i, p)
-	//}
 	for _, p := range bounds.boxPoints() {
 		closePoint := closest(p, input)
 		if closePoint >= 0 {
@@ -132,8 +129,6 @@ func runPart1(input []Point) {
 			}
 		}
 	}
-	//fmt.Println(pointCounts)
-	//fmt.Println(invalidPoints)
 	maxCount := 0
 	for i, count := range pointCounts {
 		if invalidPoints[i] == true {
@@ -147,7 +142,53 @@ func runPart1(input []Point) {
 }
 
 func runPart2(input []Point) {
-	fmt.Println("part 2")
+	const regionDistance int = 10000
+	//const regionDistance int = 32
+	pointq := make([]Point, 0, len(input)*5)
+	seenPoints := make(map[Point]bool)
+	regionCount := 0
+	for _, p := range input {
+		//fmt.Println(p)
+		for y := p.y - 1; y <= p.y+1; y++ {
+			for x := p.x - 1; x <= p.x+1; x++ {
+				newp := Point{x, y}
+				_, ok := seenPoints[newp]
+				if !ok {
+					pointq = append(pointq, newp)
+					seenPoints[newp] = true
+				}
+			}
+		}
+	}
+	// queue primed
+	qCount := 0
+	for len(pointq) > 0 {
+		// while there's items on the queue
+		p := pointq[0]
+		pointq = pointq[1:] // pop an item off the queue
+		qCount += 1
+		dist := 0
+		for _, pt := range input {
+			dist += distance(p, pt)
+		}
+		//fmt.Printf("%d, %d ", p, dist)
+		if dist < regionDistance {
+			regionCount++
+			//fmt.Printf("! %d", regionCount)
+			for y := p.y - 1; y <= p.y+1; y++ {
+				for x := p.x - 1; x <= p.x+1; x++ {
+					var newp Point = Point{x, y}
+					_, ok := seenPoints[newp]
+					if !ok {
+						pointq = append(pointq, newp)
+						seenPoints[newp] = true
+					}
+				}
+			}
+		}
+		//fmt.Print("\n")
+	}
+	fmt.Println("part 2", regionCount)
 }
 
 func main() {
