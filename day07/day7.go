@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-type depType map[string][]string
+type depType map[string]string
 
 func getInput() depType {
 	content, err := ioutil.ReadFile("input.txt")
@@ -19,15 +19,33 @@ func getInput() depType {
 		parts := strings.Split(str, " ")
 		after := parts[1]
 		before := parts[7]
-		if deps[after] == nil {
-			deps[after] = make([]string, 0, 1)
+		if _, ok := deps[after]; !ok {
+			deps[after] = ""
 		}
-		if deps[before] == nil {
-			deps[before] = make([]string, 0, 1)
-		}
-		deps[before] = append(deps[before], after)
+		deps[before] = deps[before] + after
 	}
 	return deps
+}
+
+func getNextStep(stepMap depType) string {
+	var next string
+	for step, deps := range stepMap {
+		if len(deps) == 0 && (step < next || next == "") {
+			next = step
+		}
+	}
+	return next
+}
+
+func finishStep(stepMap depType, doStep string) depType {
+	var newDeps depType = make(depType)
+	for step, deps := range stepMap {
+		if step == doStep {
+			continue
+		}
+		newDeps[step] = strings.Replace(deps, doStep, "", -1)
+	}
+	return newDeps
 }
 
 func runPart1(input depType) {
@@ -35,39 +53,27 @@ func runPart1(input depType) {
 	var workingDeps depType
 	workingDeps = input
 	for len(workingDeps) > 0 {
-		var next string
-		next = "_"
-		for step, deps := range workingDeps {
-			if len(deps) == 0 && step < next {
-				next = step
-			}
-		}
+		next := getNextStep(workingDeps)
 		result = append(result, next)
-		var newWorkingDeps depType = make(depType)
-		for step, deps := range workingDeps {
-			if step == next {
-				continue
-			}
-			delIndex := -1
-			for i, depStep := range deps {
-				if depStep == next {
-					delIndex = i
-					break
-				}
-			}
-			if delIndex == -1 {
-				newWorkingDeps[step] = deps[:]
-			} else {
-				newWorkingDeps[step] = append(deps[:delIndex], deps[delIndex+1:]...)
-			}
-		}
-		workingDeps = newWorkingDeps
+		workingDeps = finishStep(workingDeps, next)
 	}
-	fmt.Println("part 1 ", strings.Join(result, ""))
+	fmt.Println("part 1", strings.Join(result, ""))
+}
+
+type workerType struct {
+	seconds int
+	step    string
 }
 
 func runPart2(input depType) {
-	fmt.Println("part 2 ")
+	//var result []string = []string{}
+	//var workingDeps depType
+	//var workers [5]workerType
+	//var t int
+
+	//workingDeps = input
+
+	fmt.Println("part 2")
 }
 
 func main() {
