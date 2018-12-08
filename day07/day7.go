@@ -8,12 +8,23 @@ import (
 
 type depType map[string]string
 
+const testStr string = `Step C must be finished before step A can begin.
+Step C must be finished before step F can begin.
+Step A must be finished before step B can begin.
+Step A must be finished before step D can begin.
+Step B must be finished before step E can begin.
+Step D must be finished before step E can begin.
+Step F must be finished before step E can begin.
+`
+
 func getInput() depType {
 	content, err := ioutil.ReadFile("input.txt")
 	if err != nil {
 		panic(err)
 	}
-	strs := strings.Split(strings.TrimSpace(string(content)), "\n")
+	str := string(content)
+	//str = testStr
+	strs := strings.Split(strings.TrimSpace(str), "\n")
 	deps := make(depType)
 	for _, str := range strs {
 		parts := strings.Split(str, " ")
@@ -35,6 +46,17 @@ func getNextStep(stepMap depType) string {
 		}
 	}
 	return next
+}
+
+func startStep(stepMap depType, doStep string) depType {
+	var newDeps depType = make(depType)
+	for step, deps := range stepMap {
+		if step == doStep {
+			continue
+		}
+		newDeps[step] = deps
+	}
+	return newDeps
 }
 
 func finishStep(stepMap depType, doStep string) depType {
@@ -65,15 +87,54 @@ type workerType struct {
 	step    string
 }
 
+func workersDone(workers []workerType) bool {
+	var done bool = true
+	for i := range workers {
+		if workers[i].step != "" {
+			done = false
+			break
+		}
+	}
+	return done
+}
+
 func runPart2(input depType) {
-	//var result []string = []string{}
-	//var workingDeps depType
-	//var workers [5]workerType
-	//var t int
+	var workingDeps depType
+	var workers []workerType = make([]workerType, 5)
+	var t int = -1
+	var done string
+	var doing string
 
-	//workingDeps = input
-
-	fmt.Println("part 2")
+	workingDeps = input
+	fmt.Printf("%6s %5s %5s %5s %5s %5s\n", "Time", "w1", "w2", "w3", "w4", "w5")
+	for len(workingDeps) > 0 || !workersDone(workers) {
+		t++
+		for i := range workers {
+			if workers[i].seconds == 0 {
+				if workers[i].step != "" {
+					workingDeps = finishStep(workingDeps, workers[i].step)
+					done = done + workers[i].step
+					doing = strings.Replace(doing, workers[i].step, "", -1)
+					workers[i].step = ""
+				}
+			}
+		}
+		fmt.Printf("%6d", t)
+		for i := range workers {
+			if workers[i].seconds == 0 {
+				if next := getNextStep(workingDeps); next != "" {
+					workers[i].seconds = int(next[0]-'A') + 60
+					workers[i].step = next
+					workingDeps = startStep(workingDeps, next)
+				}
+			} else {
+				workers[i].seconds--
+			}
+			fmt.Printf(" %1s(%2d)", workers[i].step, workers[i].seconds)
+		}
+		fmt.Print("\n")
+	}
+	fmt.Println("part 2 ", t)
 }
 
 func main() {
