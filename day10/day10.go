@@ -63,7 +63,7 @@ func getInput() []PointType {
 		panic(err)
 	}
 	contentStr := string(content)
-	contentStr = testStr
+	//contentStr = testStr
 	points := make([]PointType, 0)
 	linereg := regexp.MustCompile(`^position=<\s*(-?\d+),\s*(-?\d+)>\s*velocity=<\s*(-?\d+),\s*(-?\d+)>$`)
 	for _, str := range strings.Split(contentStr, "\n") {
@@ -81,16 +81,87 @@ func getInput() []PointType {
 	return points
 }
 
-func runPart1(input []PointType) {
-	fmt.Println("part 1", input)
+func boundingBox(points []PointType) (pmin, pmax PointType) {
+	if len(points) > 0 {
+		pmin.x = points[0].x
+		pmin.y = points[0].y
+		pmax.x = points[0].x
+		pmax.y = points[0].y
+	}
+	for _, p := range points {
+		if pmin.x > p.x {
+			pmin.x = p.x
+		}
+		if pmin.y > p.y {
+			pmin.y = p.y
+		}
+		if pmax.x < p.x {
+			pmax.x = p.x
+		}
+		if pmax.y < p.y {
+			pmax.y = p.y
+		}
+	}
+	return
 }
 
-func runPart2(input []PointType) {
-	fmt.Println("part 2")
+func boxArea(pmin, pmax PointType) int {
+	return (pmax.x - pmin.x) * (pmax.y - pmin.y)
+}
+
+func printPoints(points []PointType, time int) {
+	fmt.Printf("After %d seconds:\n", time)
+	pmin, pmax := boundingBox(points)
+	pnormalmax := PointType{pmax.x - pmin.x, pmax.y - pmin.y, 0, 0}
+	var grid [][]bool
+	grid = make([][]bool, pnormalmax.y+1)
+	for _, p := range points {
+		x := p.x - pmin.x
+		y := p.y - pmin.y
+		if grid[y] == nil {
+			grid[y] = make([]bool, pnormalmax.x+1)
+		}
+		grid[y][x] = true
+	}
+	for y := 0; y <= pnormalmax.y; y++ {
+		for x := 0; x <= pnormalmax.x; x++ {
+			switch grid[y][x] {
+			case true:
+				fmt.Print("#")
+			case false:
+				fmt.Print(" ")
+			}
+		}
+		fmt.Println("")
+	}
+	fmt.Println("")
+}
+
+func runAll(input []PointType) {
+	points := input
+	pmin, pmax := boundingBox(points)
+	area := boxArea(pmin, pmax)
+	prevArea := area + 1
+	time := 0
+	for prevArea > area {
+		time += 1
+		for i := range points {
+			points[i].x += points[i].vx
+			points[i].y += points[i].vy
+		}
+		pmin, pmax = boundingBox(points)
+		prevArea = area
+		area = boxArea(pmin, pmax)
+	}
+	for i := range points {
+		points[i].x -= points[i].vx
+		points[i].y -= points[i].vy
+	}
+	time--
+	printPoints(points, time)
 }
 
 func main() {
 	input := getInput()
-	runPart1(input)
-	runPart2(input)
+	runAll(input)
 }
