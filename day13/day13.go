@@ -55,10 +55,11 @@ type Cart struct {
 	nextTurn  string
 	start     Point
 	position  Point
+	dead      bool
 }
 
 func (c Cart) String() string {
-	return fmt.Sprintf("[%d: %s(%s) %v]", c.direction, c.nextTurn, c.position)
+	return fmt.Sprintf("[%s(%s) %v]", c.direction, c.nextTurn, c.position)
 }
 
 type Carts []Cart
@@ -92,16 +93,16 @@ func getInput() (tracks Tracks, carts Carts) {
 			track := ch
 			switch ch {
 			case '^':
-				carts = append(carts, Cart{"^", "L", Point{x, y}, Point{x, y}})
+				carts = append(carts, Cart{"^", "L", Point{x, y}, Point{x, y}, false})
 				track = '|'
 			case 'v':
-				carts = append(carts, Cart{"v", "L", Point{x, y}, Point{x, y}})
+				carts = append(carts, Cart{"v", "L", Point{x, y}, Point{x, y}, false})
 				track = '|'
 			case '<':
-				carts = append(carts, Cart{"<", "L", Point{x, y}, Point{x, y}})
+				carts = append(carts, Cart{"<", "L", Point{x, y}, Point{x, y}, false})
 				track = '-'
 			case '>':
-				carts = append(carts, Cart{">", "L", Point{x, y}, Point{x, y}})
+				carts = append(carts, Cart{">", "L", Point{x, y}, Point{x, y}, false})
 				track = '-'
 			}
 			tracks[y] = append(tracks[y], track)
@@ -150,6 +151,9 @@ func printTracks(tracks Tracks) {
 
 func printCarts(carts Carts) {
 	for _, cart := range carts {
+		if cart.dead {
+			continue
+		}
 		fmt.Printf("[%s,%3d,%3d] ", cart.direction, cart.position.x, cart.position.y)
 	}
 	fmt.Print("\n")
@@ -209,6 +213,64 @@ func stepSim(tracks *Tracks, carts *Carts) {
 	}
 }
 
+func stepSimRemoveCrashes(tracks *Tracks, carts *Carts) {
+	sort.Sort(carts)
+	for i := 0; i < len(*carts); i++ {
+		cart := (*carts)[i]
+		if cart.dead {
+			continue
+		}
+		switch cart.direction {
+		case "^":
+			cart.position.y--
+		case "v":
+			cart.position.y++
+		case ">":
+			cart.position.x++
+		case "<":
+			cart.position.x--
+		}
+		track := (*tracks)[cart.position.y][cart.position.x]
+		switch track {
+		case '\\':
+			switch cart.direction {
+			case "^":
+				cart.direction = "<"
+			case "<":
+				cart.direction = "^"
+			case "v":
+				cart.direction = ">"
+			case ">":
+				cart.direction = "v"
+			}
+		case '/':
+			switch cart.direction {
+			case "^":
+				cart.direction = ">"
+			case ">":
+				cart.direction = "^"
+			case "v":
+				cart.direction = "<"
+			case "<":
+				cart.direction = "v"
+			}
+		case '+':
+			cart.direction = turnDir[cart.nextTurn][cart.direction]
+			cart.nextTurn = nextTurn[cart.nextTurn]
+		}
+		(*carts)[i] = cart
+		for j := 0; j < len(*carts); j++ {
+			if i == j || (*carts)[i].dead == true || (*carts)[j].dead == true {
+				continue
+			}
+			if cart.position == (*carts)[j].position {
+				(*carts)[i].dead = true
+				(*carts)[j].dead = true
+			}
+		}
+	}
+}
+
 func checkCrashed(cartsPtr *Carts) (bool, *Point) {
 	carts := *cartsPtr
 	for i := 0; i < len(carts)-1; i++ {
@@ -219,6 +281,16 @@ func checkCrashed(cartsPtr *Carts) (bool, *Point) {
 		}
 	}
 	return false, nil
+}
+
+func countCarts(carts *Carts) int {
+	count := 0
+	for _, cart := range *carts {
+		if !cart.dead {
+			count++
+		}
+	}
+	return count
 }
 
 func runPart1(tracks Tracks, carts Carts) {
@@ -234,8 +306,19 @@ func runPart1(tracks Tracks, carts Carts) {
 	fmt.Println("Part 1", crashPoint)
 }
 
+func runPart2(tracks Tracks, carts Carts) {
+	printTracks(tracks)
+	printCarts(carts)
+	for countCarts(&carts) > 1 {
+		stepSimRemoveCrashes(&tracks, &carts)
+		printCarts(carts)
+	}
+	fmt.Println("Part 2")
+}
+
 func main() {
 	tracks, carts := getInput()
-
 	runPart1(tracks, carts)
+	tracks, carts = getInput()
+	runPart2(tracks, carts)
 }
