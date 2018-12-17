@@ -49,12 +49,11 @@ func doPart2(samples []*Sample) {
 		}
 		gather[code] = append(gather[code], sample)
 	}
-	var codeMap map[int]OpcodeFunc = make(map[int]OpcodeFunc, len(gather))
+	var codeMap map[int]OpcodeFunc = make(map[int]OpcodeFunc)
 	var possibles map[int]*list.List = make(map[int]*list.List)
 	for code := range gather {
-		fmt.Printf("code: %d, samples: %d\n", code, len(gather[code]))
 		possibles[code] = list.New()
-		for _, f := range funcs {
+		for name, f := range FuncNames {
 			matched := true
 			for _, s := range gather[code] {
 				if !matchSample(f, s) {
@@ -63,18 +62,34 @@ func doPart2(samples []*Sample) {
 				}
 			}
 			if matched {
-				fmt.Printf(" found! - %v\n", f)
-				possibles[code].PushBack(f)
+				possibles[code].PushBack(name)
 			}
 		}
-		if possibles[code].Len() == 1 {
-			codeMap[code] = possibles[code].Front().Value.(OpcodeFunc)
+	}
+	for len(codeMap) < len(gather) {
+		possiblecodes := make([]int, 0)
+		for code := range possibles {
+			if possibles[code].Len() == 1 {
+				possiblecodes = append(possiblecodes, code)
+			}
+		}
+		for _, code := range possiblecodes {
+			name := possibles[code].Front().Value.(string)
+			f := FuncNames[name]
+			codeMap[code] = f
 			delete(possibles, code)
+			for delcode := range possibles {
+				node := possibles[delcode].Front()
+				for node != nil {
+					next := node.Next()
+					if node.Value.(string) == name {
+						possibles[delcode].Remove(node)
+					}
+					node = next
+				}
+			}
 		}
 	}
-	// TODO: while the length of codeMap < length of gather, look for a
-	// possible with a len of 1. Add it to codemap, remove it from possibles,
-	// repeat until done
 	// TODO: parse code
 	// TODO: run code
 }

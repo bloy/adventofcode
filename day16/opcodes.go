@@ -88,6 +88,25 @@ func eqrr(in1, in2, out int, registers *Registers) {
 	}
 }
 
+var FuncNames map[string]OpcodeFunc = map[string]OpcodeFunc{
+	"addr": addr,
+	"addi": addi,
+	"mulr": mulr,
+	"muli": muli,
+	"banr": banr,
+	"bani": bani,
+	"borr": borr,
+	"bori": bori,
+	"setr": setr,
+	"seti": seti,
+	"gtir": gtir,
+	"gtri": gtri,
+	"gtrr": gtrr,
+	"eqir": eqir,
+	"eqri": eqri,
+	"eqrr": eqrr,
+}
+
 var funcs [16]OpcodeFunc = [16]OpcodeFunc{
 	addr, addi,
 	mulr, muli,
