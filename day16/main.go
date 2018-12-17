@@ -90,6 +90,10 @@ func doPart2(samples []*Sample) {
 			}
 		}
 	}
-	// TODO: parse code
-	// TODO: run code
+	program := ParseProgram(ProgramStr)
+	var registers Registers
+	for _, instr := range program {
+		codeMap[instr.Opcode](instr.Input1, instr.Input2, instr.Output, &registers)
+	}
+	fmt.Println("after executing the proggram, register 0 contains: ", registers[0])
 }

@@ -42,12 +42,12 @@ func ParseSamples(sampleStr string) (samples []*Sample) {
 	return
 }
 
-func ParseProgram(programStr string) (instructions []*Instruction) {
+func ParseProgram(programStr string) (instructions []Instruction) {
 	lines := strings.Split(programStr, "\n")
-	instructions = make([]*Instruction, len(lines))
+	instructions = make([]Instruction, len(lines))
 	for i, line := range lines {
 		nums := strings.Split(line, " ")
-		instr := &Instruction{}
+		instr := Instruction{}
 		instr.Opcode = atoi(nums[0])
 		instr.Input1 = atoi(nums[1])
 		instr.Input2 = atoi(nums[2])
