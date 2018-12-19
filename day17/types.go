@@ -5,17 +5,17 @@ import (
 	"strings"
 )
 
-type Square int8
+type Tile int8
 
 const (
-	SAND    Square = iota // square is filled with dry sand
-	CLAY                  // square is filled with clay
-	FLOWING               // square is filled with flowing water and sand
-	SETTLED               // square is filled with settled water and sand
-	SOURCE                // water source
+	SAND    Tile = iota // square is filled with dry sand
+	CLAY                // square is filled with clay
+	FLOWING             // square is filled with flowing water and sand
+	SETTLED             // square is filled with settled water and sand
+	SOURCE              // water source
 )
 
-func (s Square) String() string {
+func (s Tile) String() string {
 	switch s {
 	case SAND:
 		return "."
@@ -36,24 +36,24 @@ type Point struct {
 	x, y int
 }
 
-func (p Point) up() Point {
+func (p Point) Up() Point {
 	return Point{p.x, p.y - 1}
 }
 
-func (p Point) down() Point {
+func (p Point) Down() Point {
 	return Point{p.x, p.y + 1}
 }
 
-func (p Point) left() Point {
+func (p Point) Left() Point {
 	return Point{p.x - 1, p.y}
 }
 
-func (p Point) right() Point {
+func (p Point) Right() Point {
 	return Point{p.x + 1, p.y}
 }
 
 type Area struct {
-	Squares            map[Point]Square
+	Tiles              map[Point]Tile
 	MinPoint, MaxPoint Point
 }
 
@@ -61,7 +61,7 @@ func (a *Area) String() string {
 	var out strings.Builder
 	for y := a.MinPoint.y; y <= a.MaxPoint.y; y++ {
 		for x := a.MinPoint.x; x <= a.MaxPoint.x; x++ {
-			fmt.Fprint(&out, a.Squares[Point{x, y}])
+			fmt.Fprint(&out, a.Tiles[Point{x, y}])
 		}
 		out.WriteString("\n")
 	}
@@ -70,6 +70,6 @@ func (a *Area) String() string {
 
 func NewArea() *Area {
 	a := &Area{}
-	a.Squares = make(map[Point]Square)
+	a.Tiles = make(map[Point]Tile)
 	return a
 }

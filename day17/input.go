@@ -53,7 +53,7 @@ func ParseInput(inputStr string) *Area {
 		}
 		for y := yrange1; y <= yrange2; y++ {
 			for x := xrange1; x <= xrange2; x++ {
-				area.Squares[Point{x, y}] = CLAY
+				area.Tiles[Point{x, y}] = CLAY
 			}
 		}
 	}
