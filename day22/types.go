@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -31,6 +32,19 @@ const (
 	TORCH
 	CLIMB
 )
+
+func (i Item) String() string {
+	switch i {
+	case NEITHER:
+		return "Neither"
+	case TORCH:
+		return "Torch"
+	case CLIMB:
+		return "Climbing Gear"
+	default:
+		return "Unknown"
+	}
+}
 
 var EQUIPMENT [3]Item = [3]Item{NEITHER, TORCH, CLIMB}
 
@@ -134,7 +148,10 @@ type Node struct {
 	Point
 	Minutes  int
 	Equipped Item
-	index    int
+}
+
+func (n *Node) String() string {
+	return fmt.Sprintf("(<%d, %d> %d min, %v)", n.X, n.Y, n.Minutes, n.Equipped)
 }
 
 type SeenNode struct {
@@ -147,25 +164,15 @@ type PriorityQueue []*Node
 func (pq PriorityQueue) Len() int { return len(pq) }
 
 func (pq PriorityQueue) Less(i, j int) bool {
-	if pq[i].Minutes == pq[j].Minutes {
-		if pq[i].X == pq[j].X {
-			return pq[i].Y < pq[j].Y
-		}
-		return pq[i].X < pq[j].X
-	}
-	return pq[i].Minutes == pq[j].Minutes
+	return pq[i].Minutes < pq[j].Minutes
 }
 
 func (pq PriorityQueue) Swap(i, j int) {
 	pq[i], pq[j] = pq[j], pq[i]
-	pq[i].index = i
-	pq[j].index = j
 }
 
 func (pq *PriorityQueue) Push(x interface{}) {
-	n := len(*pq)
 	node := x.(*Node)
-	node.index = n
 	*pq = append(*pq, node)
 }
 
@@ -173,7 +180,6 @@ func (pq *PriorityQueue) Pop() interface{} {
 	old := *pq
 	n := len(old)
 	item := old[n-1]
-	item.index = -1
 	*pq = old[0 : n-1]
 	return item
 }
