@@ -16,6 +16,7 @@ type Group struct {
 	Damage     int
 	DamageType string
 	Initiative int
+	Target     *Group
 }
 
 func NewGroup(army string, units, hp, damage, initiative int, damageType, special string) *Group {
