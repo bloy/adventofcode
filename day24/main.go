@@ -5,14 +5,13 @@ import "fmt"
 import "sort"
 
 func stillFighting(groups []*Group) bool {
-	army := ""
+	counts := make(map[string]int)
 	for _, g := range groups {
-		if g.Units > 0 && army != "" && g.Army != army {
-			return true
+		if g.Units > 0 {
+			counts[g.Army] = counts[g.Army] + 1
 		}
-		army = g.Army
 	}
-	return false
+	return len(counts) > 1
 }
 
 func targetSelection(groups []*Group) []*Group {
@@ -62,7 +61,9 @@ func targetSelection(groups []*Group) []*Group {
 				}
 			}
 		}
-		if targetE != nil {
+		if targetE == nil {
+			f.Target = nil
+		} else {
 			f.Target = targetE.Value.(*Group)
 			candidates.Remove(targetE)
 		}
@@ -70,18 +71,42 @@ func targetSelection(groups []*Group) []*Group {
 	return fighters
 }
 
+func attack(fighters []*Group) {
+	sort.Slice(fighters, func(i, j int) bool {
+		return fighters[i].Initiative > fighters[j].Initiative
+	})
+	for _, f := range fighters {
+		if f.Target == nil {
+			continue
+		}
+		if f.Units <= 0 {
+			continue
+		}
+		totalAttack := f.PowerVs(f.Target)
+		totalUnits := totalAttack / f.Target.HP
+		f.Target.Units -= totalUnits
+		if f.Target.Units < 0 {
+			f.Target.Units = 0
+		}
+		//fmt.Println(f, "(VS)", f.Target)
+		//fmt.Println("    ", totalAttack, "destroying", totalUnits, "leaving", f.Target.Units)
+	}
+}
+
 func main() {
 	str := inputStr
-	str = testStr
+	//str = testStr
 	allGroups := parseInput(str)
-	for _, g := range allGroups {
-		fmt.Println(g)
-	}
 
-	//for stillFighting(allGroups) {
-	fighters := targetSelection(allGroups)
-	for _, f := range fighters {
-		fmt.Println(f, "vs", f.Target)
+	for stillFighting(allGroups) {
+		fighters := targetSelection(allGroups)
+		attack(fighters)
 	}
-	//}
+	total := 0
+	for _, g := range allGroups {
+		if g.Units > 0 {
+			total += g.Units
+		}
+	}
+	fmt.Println("Part 1:", total)
 }
