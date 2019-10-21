@@ -1,14 +1,45 @@
 package main
 
-const testStr = `Immune System:
-17 units each with 5390 hit points (weak to radiation, bludgeoning) with an attack that does 4507 fire damage at initiative 2
-989 units each with 1274 hit points (immune to fire; weak to bludgeoning, slashing) with an attack that does 25 slashing damage at initiative 3
+import (
+	"regexp"
+	"strconv"
+	"strings"
+)
 
-Infection:
-801 units each with 4706 hit points (weak to radiation) with an attack that does 116 bludgeoning damage at initiative 1
-4485 units each with 2961 hit points (immune to radiation; weak to fire, cold) with an attack that does 12 slashing damage at initiative 4`
+const armyRegex = `^(.*):$`
+const groupRegex = `^(\d+) units each with (\d+) hit points (?:\((.*)\) )?with an attack that does (\d+) (\w+) damage at initiative (\d+)$`
 
-const realStr = `Immune System:
+func atoi(str string) int {
+	i, err := strconv.Atoi(str)
+	if err != nil {
+		panic(err)
+	}
+	return i
+}
+
+func parseInput(str string) []*Group {
+	lines := strings.Split(str, "\n")
+	groups := make([]*Group, 0)
+	armyRe := regexp.MustCompile(armyRegex)
+	groupRe := regexp.MustCompile(groupRegex)
+	army := ""
+	for _, line := range lines {
+		if line == "" {
+			continue
+		}
+		match := armyRe.FindStringSubmatch(line)
+		if len(match) > 0 {
+			army = match[1]
+			continue
+		}
+		match = groupRe.FindStringSubmatch(line)
+		g := NewGroup(army, atoi(match[1]), atoi(match[2]), atoi(match[4]), atoi(match[6]), match[5], match[3])
+		groups = append(groups, g)
+	}
+	return groups
+}
+
+const inputStr = `Immune System:
 2749 units each with 8712 hit points (immune to radiation, cold; weak to fire) with an attack that does 30 radiation damage at initiative 18
 704 units each with 1890 hit points with an attack that does 26 fire damage at initiative 17
 1466 units each with 7198 hit points (immune to bludgeoning; weak to slashing, cold) with an attack that does 44 bludgeoning damage at initiative 6
@@ -31,3 +62,11 @@ Infection:
 1541 units each with 49751 hit points (weak to cold, bludgeoning) with an attack that does 62 slashing damage at initiative 19
 3270 units each with 22736 hit points with an attack that does 13 slashing damage at initiative 10
 1211 units each with 56258 hit points (immune to slashing, cold) with an attack that does 73 bludgeoning damage at initiative 11`
+
+const testStr = `Immune System:
+17 units each with 5390 hit points (weak to radiation, bludgeoning) with an attack that does 4507 fire damage at initiative 2
+989 units each with 1274 hit points (immune to fire; weak to bludgeoning, slashing) with an attack that does 25 slashing damage at initiative 3
+
+Infection:
+801 units each with 4706 hit points (weak to radiation) with an attack that does 116 bludgeoning damage at initiative 1
+4485 units each with 2961 hit points (immune to radiation; weak to fire, cold) with an attack that does 12 slashing damage at initiative 4`
