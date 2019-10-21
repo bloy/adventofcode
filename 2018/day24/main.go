@@ -32,10 +32,10 @@ func targetSelection(groups []*Group) []*Group {
 		return ip > jp
 	})
 	for _, f := range fighters {
-		var targetE *list.Element = nil
-		var targetDamage int = 0
-		var targetPower int = 0
-		var targetInit int = 0
+		var targetE *list.Element
+		var targetDamage int
+		var targetPower int
+		var targetInit int
 		for e := candidates.Front(); e != nil; e = e.Next() {
 			t := e.Value.(*Group)
 			if t.Army == f.Army {
@@ -94,19 +94,63 @@ func attack(fighters []*Group) {
 }
 
 func main() {
-	str := inputStr
-	//str = testStr
-	allGroups := parseInput(str)
+	part1()
+	part2()
+}
 
+func runFight(str string, boost int) (army string, units int) {
+	allGroups := parseInput(str)
+	for i := range allGroups {
+		if allGroups[i].Army != "Infection" {
+			allGroups[i].Damage += boost
+		}
+	}
 	for stillFighting(allGroups) {
 		fighters := targetSelection(allGroups)
 		attack(fighters)
 	}
-	total := 0
+	army = "Infection"
+	units = 0
 	for _, g := range allGroups {
 		if g.Units > 0 {
-			total += g.Units
+			army = g.Army
+			units += g.Units
 		}
 	}
-	fmt.Println("Part 1:", total)
+	return
+}
+
+func part1() {
+	str := inputStr
+	//str = testStr
+	army, total := runFight(str, 0)
+	fmt.Println("Part 1:", army, total)
+}
+
+func part2() {
+	str := inputStr
+	var cur, lo, hi = 0, 0, 10001
+	var army string
+	var total int
+	for lo < hi {
+		army, total = runFight(str, cur)
+		fmt.Printf("  Tried a boost of %d (range %d - %d): %s %d\n", cur, lo, hi, army, total)
+		if army == "Infection" {
+			lo = cur + 1
+		} else {
+			hi = cur - 1
+		}
+		cur = (lo + hi) / 2
+	}
+	army, total = runFight(str, cur)
+	fmt.Printf("  Tried a boost of %d (range %d - %d): %s %d\n", cur, lo, hi, army, total)
+	fmt.Printf("  ------------------")
+	prev := 0
+	for boost := 0; boost < 42; boost++ {
+		army, total = runFight(str, boost)
+		fmt.Printf("  Tried a boost of %d: %s %d (Δ%d)\n", boost, army, total, prev-total)
+		prev = total
+	}
+
+	fmt.Println("Part 2", army, total, cur)
 }
