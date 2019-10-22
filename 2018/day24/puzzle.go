@@ -8,6 +8,9 @@ import (
 	"strings"
 )
 
+type fights map[*group]*group
+type targets map[*group]bool
+
 type dataType []*group
 
 func (data dataType) String() string {
@@ -27,6 +30,27 @@ func (data dataType) String() string {
 		fmt.Fprintf(&b, "%v\n", c[i])
 	}
 	return b.String()
+}
+
+func (data dataType) Copy() dataType {
+	newData := make(dataType, len(data))
+	for i, g := range data {
+		newData[i] = g.Copy()
+	}
+	return newData
+}
+
+func (data dataType) fightStep() dataType {
+	allGroups := data.Copy()
+	dataBy(func(g1, g2 *group) bool {
+		g1p, g2p := g1.power(), g2.power()
+		if g1p == g2p {
+			return g1.init > g2.init
+		}
+		return g1p > g2p
+	}).Sort(allGroups)
+
+	return allGroups
 }
 
 type dataBy func(g1, g2 *group) bool
@@ -63,6 +87,26 @@ type group struct {
 	units, hp, damage, init int
 	immune, weak            stringSet
 	army, damageType        string
+}
+
+func (g *group) Copy() *group {
+	newg := &group{
+		units:      g.units,
+		hp:         g.hp,
+		damage:     g.damage,
+		init:       g.init,
+		army:       g.army,
+		damageType: g.damageType,
+		immune:     make(stringSet),
+		weak:       make(stringSet),
+	}
+	for k, v := range g.immune {
+		newg.immune[k] = v
+	}
+	for k, v := range g.weak {
+		newg.weak[k] = v
+	}
+	return newg
 }
 
 func (g *group) String() string {
@@ -106,6 +150,42 @@ func (g *group) damageVs(other *group) int {
 		dmg *= 2
 	}
 	return dmg
+}
+
+func (g *group) bestTarget(allGroups dataType, targetList targets) *group {
+	valid := make(dataType, 0)
+	for _, other := range allGroups {
+		if targetList[other] {
+			continue
+			// don't select already chosen targets
+		}
+		if other.immune[g.damageType] {
+			continue
+			// not a valid target if immune
+		}
+		if dmg := g.damageVs(other); dmg < other.hp {
+			continue
+			// not a valid target if can't damage
+		}
+		if other.army != g.army && other.inCombat() {
+			valid = append(valid, other)
+		}
+	}
+	dataBy(func(g1, g2 *group) bool {
+		g1dv, g2dv := g.damageVs(g1), g.damageVs(g2)
+		if g1dv == g2dv {
+			g1pow, g2pow := g1.power(), g2.power()
+			if g1pow == g2pow {
+				return g1.init > g2.init
+			}
+			return g1pow > g2pow
+		}
+		return g1dv > g2dv
+	}).Sort(valid)
+	if len(valid) > 0 {
+		return valid[0]
+	}
+	return nil
 }
 
 func newGroup(army string, units, hp, damage, init int, damageType, special string) *group {
