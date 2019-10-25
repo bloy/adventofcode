@@ -5,7 +5,9 @@ import (
 	"time"
 )
 
-const inputText = testStr
+const inputText = realStr
+
+//const inputText = testStr
 
 func main() {
 	fmt.Println("Advent of code 2018 Day 24")

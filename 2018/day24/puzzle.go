@@ -13,23 +13,36 @@ type targets map[*group]bool
 
 type dataType []*group
 
-func (data dataType) String() string {
+func (data dataType) Info(detail bool) string {
 	b := strings.Builder{}
 	c := make(dataType, len(data))
 	copy(c, data)
-	dataBy(func(g1, g2 *group) bool { return g1.army < g2.army }).Sort(c)
-	army := ""
-	for i := range c {
-		if c[i].army != army {
-			fmt.Fprintf(&b, "\n%s:\n", c[i].army)
-			army = c[i].army
+	dataBy(func(g1, g2 *group) bool {
+		if g1.army == g2.army {
+			return g1.power() > g2.power()
 		}
+		return g1.army < g2.army
+	}).Sort(c)
+	army := ""
+	group := 0
+	for i := range c {
 		if !c[i].inCombat() {
 			continue
 		}
-		fmt.Fprintf(&b, "%v\n", c[i])
+		if c[i].army != army {
+			fmt.Fprintf(&b, "\n%s:\n", c[i].army)
+			army = c[i].army
+			group = 0
+		}
+		group++
+		c[i].group = group
+		fmt.Fprintf(&b, "%v\n", c[i].Info(detail))
 	}
 	return b.String()
+}
+
+func (data dataType) String() string {
+	return data.Info(true)
 }
 
 func (data dataType) Copy() dataType {
@@ -40,17 +53,93 @@ func (data dataType) Copy() dataType {
 	return newData
 }
 
-func (data dataType) fightStep() dataType {
-	allGroups := data.Copy()
-	dataBy(func(g1, g2 *group) bool {
-		g1p, g2p := g1.power(), g2.power()
-		if g1p == g2p {
-			return g1.init > g2.init
+func (data dataType) boost(amt int) dataType {
+	data = data.Copy()
+	for i := range data {
+		if data[i].army == "Immune System" {
+			data[i].damage = data[i].damage + amt
 		}
-		return g1p > g2p
+	}
+	return data
+}
+
+func (data dataType) armyStats() map[string]int {
+	stats := make(map[string]int)
+	for i := range data {
+		if data[i].inCombat() {
+			army := data[i].army
+			if _, ok := stats[army]; !ok {
+				stats[army] = 0
+			}
+			stats[army] = stats[army] + data[i].units
+		}
+	}
+	return stats
+}
+
+func (data dataType) fightStep(debug bool) dataType {
+	allGroups := data.Copy()
+	if debug {
+		fmt.Print(allGroups.Info(false))
+	}
+	dataBy(func(g1, g2 *group) bool {
+		if g1.army == g2.army {
+			g1p, g2p := g1.power(), g2.power()
+			if g1p == g2p {
+				return g1.init > g2.init
+			}
+			return g1p > g2p
+		}
+		return g1.army < g2.army
 	}).Sort(allGroups)
+	// target selection phase
+	fighters := make(fights)
+	targetSet := make(targets)
+	for i := range allGroups {
+		target := allGroups[i].bestTarget(allGroups, targetSet, debug)
+		if target != nil {
+			targetSet[target] = true
+			fighters[allGroups[i]] = target
+		}
+	}
+
+	// attack phase
+	attackerList := make(dataType, len(fighters))
+	i := 0
+	for g := range fighters {
+		attackerList[i] = g
+		i++
+	}
+	dataBy(func(g1, g2 *group) bool {
+		return g1.init > g2.init
+	}).Sort(attackerList)
+	for _, attacker := range attackerList {
+		defender := fighters[attacker]
+		dmg := attacker.damageVs(defender)
+		units := defender.applyDamage(dmg)
+		if debug {
+			fmt.Printf("%s group %d attacks defending group %d, killing %d units\n",
+				attacker.army, attacker.group, defender.group, units)
+		}
+	}
 
 	return allGroups
+}
+
+func (data dataType) runFight(debug bool) (army string, units int) {
+	groups := data
+	stats := groups.armyStats()
+	for len(stats) > 1 {
+		groups = groups.fightStep(debug)
+		stats = groups.armyStats()
+	}
+	for a := range stats {
+		army, units = a, stats[a]
+	}
+	if debug {
+		fmt.Print("\n----------------------------\n\n")
+	}
+	return
 }
 
 type dataBy func(g1, g2 *group) bool
@@ -84,9 +173,9 @@ func (s stringSet) words() []string {
 }
 
 type group struct {
-	units, hp, damage, init int
-	immune, weak            stringSet
-	army, damageType        string
+	group, units, hp, damage, init int
+	immune, weak                   stringSet
+	army, damageType               string
 }
 
 func (g *group) Copy() *group {
@@ -99,6 +188,7 @@ func (g *group) Copy() *group {
 		damageType: g.damageType,
 		immune:     make(stringSet),
 		weak:       make(stringSet),
+		group:      0,
 	}
 	for k, v := range g.immune {
 		newg.immune[k] = v
@@ -107,6 +197,13 @@ func (g *group) Copy() *group {
 		newg.weak[k] = v
 	}
 	return newg
+}
+
+func (g *group) Info(detail bool) string {
+	if detail {
+		return g.String()
+	}
+	return fmt.Sprintf("Group %d contains %d units", g.group, g.units)
 }
 
 func (g *group) String() string {
@@ -152,7 +249,18 @@ func (g *group) damageVs(other *group) int {
 	return dmg
 }
 
-func (g *group) bestTarget(allGroups dataType, targetList targets) *group {
+func (g *group) applyDamage(damage int) int {
+	numunits := (damage / g.hp)
+	if numunits > g.units {
+		numunits = g.units
+		g.units = 0
+	} else {
+		g.units = g.units - numunits
+	}
+	return numunits
+}
+
+func (g *group) bestTarget(allGroups dataType, targetList targets, debug bool) *group {
 	valid := make(dataType, 0)
 	for _, other := range allGroups {
 		if targetList[other] {
@@ -163,10 +271,10 @@ func (g *group) bestTarget(allGroups dataType, targetList targets) *group {
 			continue
 			// not a valid target if immune
 		}
-		if dmg := g.damageVs(other); dmg < other.hp {
-			continue
-			// not a valid target if can't damage
-		}
+		//if dmg := g.damageVs(other); dmg < other.hp {
+		//continue
+		//// not a valid target if can't damage
+		//}
 		if other.army != g.army && other.inCombat() {
 			valid = append(valid, other)
 		}
@@ -182,6 +290,12 @@ func (g *group) bestTarget(allGroups dataType, targetList targets) *group {
 		}
 		return g1dv > g2dv
 	}).Sort(valid)
+	if debug {
+		for _, v := range valid {
+			fmt.Printf("%s group %d would deal defending group %d %d damage\n",
+				g.army, g.group, v.group, g.damageVs(v))
+		}
+	}
 	if len(valid) > 0 {
 		return valid[0]
 	}
@@ -250,10 +364,29 @@ func readInput(str string) dataType {
 }
 
 func solve1(data dataType) int {
-	fmt.Print(data)
-	return 0
+	//if 1 == 1 {
+	//return 0
+	//}
+	//	fmt.Print(data)
+	army, units := data.runFight(false)
+	fmt.Printf("%s won with %d units remaining\n", army, units)
+	return units
 }
 
 func solve2(data dataType) int {
-	return 0
+	//if 1 == 1 {
+	//return 0
+	//}
+	fmt.Print(data)
+	for amt := 1; ; amt++ {
+		//fmt.Println("===============================================")
+		//fmt.Printf("Boost Amount: %d\n", amt)
+		data = data.boost(amt)
+		//		fmt.Print(data)
+		army, units := data.runFight(false)
+		fmt.Printf("boost %d - %s won with %d units remaining\n", amt, army, units)
+		if army == "Immune System" {
+			return units
+		}
+	}
 }
