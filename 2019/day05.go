@@ -8,19 +8,28 @@ func init() {
 
 func solveDay5(pr *PuzzleRun) {
 	scanner := bufio.NewScanner(pr.InFile)
-	var ic *Intcode
-	var err error
+	var program string
 	for scanner.Scan() {
-		ic, err = NewIntcodeFromInput(scanner.Text())
-		if err != nil {
-			pr.logger.Fatal(err)
-		}
+		program = scanner.Text()
 	}
 	if err := scanner.Err(); err != nil {
+		pr.logger.Fatal(err)
+	}
+	ic, err := NewIntcodeFromInput(program)
+	if err != nil {
 		pr.logger.Fatal(err)
 	}
 	ic.AddStandardOpcodes()
 	pr.ReportLoad()
 	outputs, err := ic.RunProgram([]int{1})
 	pr.ReportPart("Part1", outputs, err)
+
+	ic, err = NewIntcodeFromInput(program)
+	if err != nil {
+		pr.logger.Fatal(err)
+	}
+	ic.AddStandardOpcodes()
+	ic.Verbose = true
+	outputs, err = ic.RunProgram([]int{5})
+	pr.ReportPart("Part2", outputs, err)
 }
