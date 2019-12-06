@@ -27,3 +27,44 @@ func TestSampleIntcodeDay2Input(t *testing.T) {
 	expected := 6627023
 	assert.Equal(t, ic.mem[0], expected)
 }
+
+func TestIntcodeDay5Sample1NoInput(t *testing.T) {
+	program := "3,0,4,0,99"
+	ic, err := NewIntcodeFromInput(program)
+	assert.Nil(t, err)
+	ic.AddStandardOpcodes()
+	_, err = ic.RunProgram(nil)
+	assert.NotNil(t, err)
+}
+
+func TestIntcodeDay5Sample1(t *testing.T) {
+	program := "3,0,4,0,99"
+	ic, err := NewIntcodeFromInput(program)
+	assert.Nil(t, err)
+	ic.AddStandardOpcodes()
+	outputs, err := ic.RunProgram([]int{12345})
+	assert.Nil(t, err)
+	assert.Equal(t, outputs, []int{12345})
+}
+
+func TestIntcodeDay5Sample2(t *testing.T) {
+	program := "1002,4,3,4,33"
+	ic, err := NewIntcodeFromInput(program)
+	assert.Nil(t, err)
+	ic.AddStandardOpcodes()
+	outputs, err := ic.RunProgram(nil)
+	assert.Nil(t, err)
+	assert.Equal(t, outputs, []int{})
+	assert.Equal(t, ic.mem, []int{1002, 4, 3, 4, 99})
+}
+
+func TestIntcodeDay5Sample3(t *testing.T) {
+	program := "1101,100,-1,4,0"
+	ic, err := NewIntcodeFromInput(program)
+	assert.Nil(t, err)
+	ic.AddStandardOpcodes()
+	outputs, err := ic.RunProgram(nil)
+	assert.Nil(t, err)
+	assert.Equal(t, outputs, []int{})
+	assert.Equal(t, ic.mem, []int{1101, 100, -1, 4, 99})
+}
