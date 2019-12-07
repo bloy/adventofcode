@@ -1,6 +1,8 @@
 package main
 
-import "bufio"
+import (
+	"bufio"
+)
 
 func init() {
 	AddSolution(7, solveDay7)
@@ -17,8 +19,8 @@ func permNumber(perm []int) int {
 
 func permutations(start, stop int) (permList [][]int) {
 	base := make([]int, stop-start+1)
-	for i := start; i < len(base); i++ {
-		base[i-start] = i
+	for i := 0; i < len(base); i++ {
+		base[i] = i + start
 	}
 	var rc func([]int, int)
 	rc = func(a []int, k int) {
@@ -46,29 +48,78 @@ func solveDay7(pr *PuzzleRun) {
 		pr.logger.Fatal(err)
 	}
 	permList1 := permutations(0, 4)
+	permList2 := permutations(5, 9)
 	pr.ReportLoad()
 
 	max := 0
 	maxPerm := 0
 
 	for _, perm := range permList1 {
-		out := 0
-		for _, signal := range perm {
-			ic, err := NewIntcodeFromInput(program)
-			if err != nil {
-				pr.logger.Fatal(err)
-			}
-			ic.AddStandardOpcodes()
-			output, err := ic.RunProgram([]int{signal, out})
-			if err != nil {
-				pr.logger.Fatal(err)
-			}
-			out = output[0]
+		signalchans := make([]chan int, len(perm)+1)
+		for i := 0; i < len(signalchans); i++ {
+			signalchans[i] = make(chan int, 2)
 		}
+		errorchan := make(chan error)
+		donechan := make(chan bool)
+		amps := make([]*Intcode, len(perm))
+		for i, signal := range perm {
+			amp, err := NewIntcodeFromInput(program)
+			if err != nil {
+				pr.logger.Fatal(err)
+			}
+			amps[i] = amp
+			amps[i].AddStandardOpcodes()
+			amps[i].RunProgramChannelMode(signalchans[i], signalchans[i+1], errorchan, donechan)
+			signalchans[i] <- signal
+		}
+		signalchans[0] <- 0
+		for i := 0; i < len(perm); i++ {
+			<-donechan
+		}
+		out := <-signalchans[len(perm)]
 		if out > max {
 			max = out
 			maxPerm = permNumber(perm)
 		}
 	}
 	pr.ReportPart("Part1: Signal:", max, "Phase:", maxPerm)
+
+	max = 0
+	maxPerm = 0
+	for _, perm := range permList2 {
+		//fmt.Println("Trying perm", perm)
+		signalchans := make([]chan int, len(perm))
+		for i := 0; i < len(signalchans); i++ {
+			signalchans[i] = make(chan int, 2)
+		}
+		errorchan := make(chan error)
+		donechan := make(chan bool)
+		amps := make([]*Intcode, len(perm))
+		for i, signal := range perm {
+			amp, err := NewIntcodeFromInput(program)
+			if err != nil {
+				pr.logger.Fatal(err)
+			}
+			amps[i] = amp
+			amps[i].AddStandardOpcodes()
+			inchan := signalchans[i]
+			outchan := signalchans[0]
+			if i != len(perm)-1 {
+				outchan = signalchans[i+1]
+			}
+			amps[i].RunProgramChannelMode(inchan, outchan, errorchan, donechan)
+			signalchans[i] <- signal
+		}
+		signalchans[0] <- 0
+		for i := 0; i < len(perm); i++ {
+			<-donechan
+		}
+		out := <-signalchans[0]
+		if out > max {
+			max = out
+			maxPerm = permNumber(perm)
+		}
+	}
+
+	pr.ReportPart("Part2: Signal:", max, "Phase:", maxPerm)
 }

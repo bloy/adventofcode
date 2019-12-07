@@ -51,11 +51,16 @@ func opcodeInput(ic *Intcode, positions []int) (done bool, err error) {
 	if ic.Verbose {
 		fmt.Println("IN  ", positions)
 	}
-	if len(ic.inputs) < 1 {
-		return true, fmt.Errorf("No Inputs Remaining")
+	var in int
+	if ic.UseChannels {
+		in = <-ic.inchan
+	} else {
+		if len(ic.inputs) < 1 {
+			return true, fmt.Errorf("No Inputs Remaining")
+		}
+		in = ic.inputs[0]
+		ic.inputs = ic.inputs[1:]
 	}
-	in := ic.inputs[0]
-	ic.inputs = ic.inputs[1:]
 	o := positions[0]
 	ic.mem[o] = in
 	ic.pc += 2
@@ -67,7 +72,11 @@ func opcodeOutput(ic *Intcode, positions []int) (done bool, err error) {
 		fmt.Println("OUT ", positions)
 	}
 	in := positions[0]
-	ic.output = append(ic.output, in)
+	if ic.UseChannels {
+		ic.outchan <- in
+	} else {
+		ic.output = append(ic.output, in)
+	}
 	ic.pc += 2
 	return
 }
@@ -134,12 +143,15 @@ func opcodeEqual(ic *Intcode, positions []int) (done bool, err error) {
 
 // Intcode holds data and state for a running AoC 2019 intcode simulator
 type Intcode struct {
-	pc      int // program counter
-	mem     []int
-	opcodes map[int]intcodeopcode
-	output  []int
-	inputs  []int
-	Verbose bool
+	pc          int // program counter
+	mem         []int
+	opcodes     map[int]intcodeopcode
+	output      []int
+	outchan     chan int
+	inputs      []int
+	inchan      chan int
+	UseChannels bool
+	Verbose     bool
 }
 
 // NewIntcode returns a new Intcode computer
@@ -149,11 +161,15 @@ func NewIntcode(codes []int) *Intcode {
 		copied[i] = codes[i]
 	}
 	return &Intcode{
-		pc:      0,
-		mem:     copied,
-		opcodes: make(map[int]intcodeopcode),
-		output:  make([]int, 0),
-		inputs:  make([]int, 0),
+		pc:          0,
+		mem:         copied,
+		opcodes:     make(map[int]intcodeopcode),
+		output:      make([]int, 0),
+		inputs:      make([]int, 0),
+		inchan:      make(chan int),
+		outchan:     make(chan int),
+		Verbose:     false,
+		UseChannels: false,
 	}
 }
 
@@ -230,4 +246,22 @@ func (ic *Intcode) RunProgram(inputs []int) (output []int, err error) {
 		done, err = ic.RunInstruction()
 	}
 	return ic.output, err
+}
+
+// RunProgramChannelMode runs an intcode program in channel mode
+func (ic *Intcode) RunProgramChannelMode(in, out chan int, err chan error, done chan bool) {
+	ic.UseChannels = true
+	ic.inchan = in
+	ic.outchan = out
+	go func() {
+		var instrdone bool
+		var instrerr error
+		for !instrdone && instrerr == nil {
+			instrdone, instrerr = ic.RunInstruction()
+		}
+		if instrerr != nil {
+			err <- instrerr
+		}
+		done <- instrdone
+	}()
 }
