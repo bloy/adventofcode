@@ -81,7 +81,7 @@ func opcodeJumpIfTrue(ic *Intcode, positions []int) (done bool, err error) {
 	if in1 != 0 {
 		ic.pc = in2
 	} else {
-		ic.pc++
+		ic.pc += 3
 	}
 	return
 }
@@ -95,7 +95,7 @@ func opcodeJumpIfFalse(ic *Intcode, positions []int) (done bool, err error) {
 	if in1 == 0 {
 		ic.pc = in2
 	} else {
-		ic.pc++
+		ic.pc += 3
 	}
 	return
 }

@@ -29,7 +29,6 @@ func solveDay5(pr *PuzzleRun) {
 		pr.logger.Fatal(err)
 	}
 	ic.AddStandardOpcodes()
-	ic.Verbose = true
 	outputs, err = ic.RunProgram([]int{5})
 	pr.ReportPart("Part2", outputs, err)
 }
