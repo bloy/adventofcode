@@ -36,4 +36,31 @@ func solveDay6(pr *PuzzleRun) {
 		}
 	}
 	pr.ReportPart(count)
+
+	youOrbiting := orbits["YOU"].parent
+	santaOrbiting := orbits["SAN"].parent
+	seen := make(map[string]bool)
+	current := youOrbiting
+	for current != "COM" {
+		seen[current] = true
+		current = orbits[current].parent
+	}
+	seen["COM"] = true
+	current = santaOrbiting
+	for !seen[current] {
+		current = orbits[current].parent
+	}
+	common := current
+	count = 0
+	current = youOrbiting
+	for current != common {
+		count++
+		current = orbits[current].parent
+	}
+	current = santaOrbiting
+	for current != common {
+		count++
+		current = orbits[current].parent
+	}
+	pr.ReportPart(count)
 }
