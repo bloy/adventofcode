@@ -239,6 +239,8 @@ func (ic *Intcode) RunInstruction() (done bool, err error) {
 			arg = ic.mem[arg]
 		} else if flag == 2 && opcode.argflags[i-1] == 'r' { // relative mode
 			arg = ic.mem[arg+ic.relBase]
+		} else if flag == 2 && opcode.argflags[i-1] == 'w' { // relative mode (writing)
+			arg = arg + ic.relBase
 		}
 		args[i-1] = arg
 	}
