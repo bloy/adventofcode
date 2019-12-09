@@ -7,7 +7,7 @@ import (
 )
 
 // IntcodeFunc is an intcode processiong emulator instruction
-type IntcodeFunc func(ic *Intcode, positions []int) (done bool, err error)
+type IntcodeFunc func(ic *Intcode, positions []int64) (done bool, err error)
 
 type intcodeopcode struct {
 	args     int
@@ -15,7 +15,7 @@ type intcodeopcode struct {
 	icfunc   IntcodeFunc
 }
 
-func opcodeHalt(ic *Intcode, positions []int) (done bool, err error) {
+func opcodeHalt(ic *Intcode, positions []int64) (done bool, err error) {
 	if ic.Verbose {
 		fmt.Println("HALT")
 	}
@@ -23,7 +23,7 @@ func opcodeHalt(ic *Intcode, positions []int) (done bool, err error) {
 	return true, nil
 }
 
-func opcodeAdd(ic *Intcode, positions []int) (done bool, err error) {
+func opcodeAdd(ic *Intcode, positions []int64) (done bool, err error) {
 	if ic.Verbose {
 		fmt.Println("ADD ", positions)
 	}
@@ -35,7 +35,7 @@ func opcodeAdd(ic *Intcode, positions []int) (done bool, err error) {
 	return
 }
 
-func opcodeMul(ic *Intcode, positions []int) (done bool, err error) {
+func opcodeMul(ic *Intcode, positions []int64) (done bool, err error) {
 	if ic.Verbose {
 		fmt.Println("MUL ", positions)
 	}
@@ -47,11 +47,11 @@ func opcodeMul(ic *Intcode, positions []int) (done bool, err error) {
 	return
 }
 
-func opcodeInput(ic *Intcode, positions []int) (done bool, err error) {
+func opcodeInput(ic *Intcode, positions []int64) (done bool, err error) {
 	if ic.Verbose {
 		fmt.Println("IN  ", positions)
 	}
-	var in int
+	var in int64
 	if ic.UseChannels {
 		in = <-ic.inchan
 	} else {
@@ -67,7 +67,7 @@ func opcodeInput(ic *Intcode, positions []int) (done bool, err error) {
 	return
 }
 
-func opcodeOutput(ic *Intcode, positions []int) (done bool, err error) {
+func opcodeOutput(ic *Intcode, positions []int64) (done bool, err error) {
 	if ic.Verbose {
 		fmt.Println("OUT ", positions)
 	}
@@ -81,7 +81,7 @@ func opcodeOutput(ic *Intcode, positions []int) (done bool, err error) {
 	return
 }
 
-func opcodeJumpIfTrue(ic *Intcode, positions []int) (done bool, err error) {
+func opcodeJumpIfTrue(ic *Intcode, positions []int64) (done bool, err error) {
 	if ic.Verbose {
 		fmt.Println("JMPT", positions)
 	}
@@ -95,7 +95,7 @@ func opcodeJumpIfTrue(ic *Intcode, positions []int) (done bool, err error) {
 	return
 }
 
-func opcodeJumpIfFalse(ic *Intcode, positions []int) (done bool, err error) {
+func opcodeJumpIfFalse(ic *Intcode, positions []int64) (done bool, err error) {
 	if ic.Verbose {
 		fmt.Println("JMPF", positions)
 	}
@@ -109,14 +109,14 @@ func opcodeJumpIfFalse(ic *Intcode, positions []int) (done bool, err error) {
 	return
 }
 
-func opcodeLessThan(ic *Intcode, positions []int) (done bool, err error) {
+func opcodeLessThan(ic *Intcode, positions []int64) (done bool, err error) {
 	if ic.Verbose {
 		fmt.Println("LT  ", positions)
 	}
 	in1 := positions[0]
 	in2 := positions[1]
 	o := positions[2]
-	out := 0
+	var out int64
 	if in1 < in2 {
 		out = 1
 	}
@@ -125,14 +125,14 @@ func opcodeLessThan(ic *Intcode, positions []int) (done bool, err error) {
 	return
 }
 
-func opcodeEqual(ic *Intcode, positions []int) (done bool, err error) {
+func opcodeEqual(ic *Intcode, positions []int64) (done bool, err error) {
 	if ic.Verbose {
 		fmt.Println("EQ  ", positions)
 	}
 	in1 := positions[0]
 	in2 := positions[1]
 	o := positions[2]
-	out := 0
+	var out int64
 	if in1 == in2 {
 		out = 1
 	}
@@ -143,31 +143,31 @@ func opcodeEqual(ic *Intcode, positions []int) (done bool, err error) {
 
 // Intcode holds data and state for a running AoC 2019 intcode simulator
 type Intcode struct {
-	pc          int // program counter
-	mem         []int
-	opcodes     map[int]intcodeopcode
-	output      []int
-	outchan     chan int
-	inputs      []int
-	inchan      chan int
+	pc          int64                   // program counter
+	mem         map[int64]int64         // memory
+	opcodes     map[int64]intcodeopcode // list of understood opcodes
+	output      []int64
+	outchan     chan int64
+	inputs      []int64
+	inchan      chan int64
 	UseChannels bool
 	Verbose     bool
 }
 
 // NewIntcode returns a new Intcode computer
-func NewIntcode(codes []int) *Intcode {
-	copied := make([]int, len(codes))
+func NewIntcode(codes []int64) *Intcode {
+	copied := make(map[int64]int64)
 	for i := range codes {
-		copied[i] = codes[i]
+		copied[int64(i)] = codes[i]
 	}
 	return &Intcode{
 		pc:          0,
 		mem:         copied,
-		opcodes:     make(map[int]intcodeopcode),
-		output:      make([]int, 0),
-		inputs:      make([]int, 0),
-		inchan:      make(chan int),
-		outchan:     make(chan int),
+		opcodes:     make(map[int64]intcodeopcode),
+		output:      make([]int64, 0),
+		inputs:      make([]int64, 0),
+		inchan:      make(chan int64),
+		outchan:     make(chan int64),
 		Verbose:     false,
 		UseChannels: false,
 	}
@@ -177,9 +177,9 @@ func NewIntcode(codes []int) *Intcode {
 // seperated integers
 func NewIntcodeFromInput(codes string) (*Intcode, error) {
 	strs := strings.Split(codes, ",")
-	nums := make([]int, len(strs))
+	nums := make([]int64, len(strs))
 	for i := range strs {
-		num, err := strconv.Atoi(strs[i])
+		num, err := strconv.ParseInt(strs[i], 10, 64)
 		if err != nil {
 			return nil, err
 		}
@@ -202,7 +202,7 @@ func (ic *Intcode) AddStandardOpcodes() {
 }
 
 // AddOpcode adds an opcode to the existing opcodes
-func (ic *Intcode) AddOpcode(opCodeNum, numArgs int, flags string, icfunc IntcodeFunc) {
+func (ic *Intcode) AddOpcode(opCodeNum int64, numArgs int, flags string, icfunc IntcodeFunc) {
 	ic.opcodes[opCodeNum] = intcodeopcode{args: numArgs, argflags: flags, icfunc: icfunc}
 }
 
@@ -218,11 +218,11 @@ func (ic *Intcode) RunInstruction() (done bool, err error) {
 			"Unknown opcode %d encountered at position %d", opcodenum, ic.pc,
 		)
 	}
-	args := make([]int, opcode.args)
+	args := make([]int64, opcode.args)
 	for i := 1; i <= opcode.args; i++ {
 		flag := ocflags % 10
 		ocflags = ocflags / 10
-		arg := ic.mem[ic.pc+i]
+		arg := ic.mem[ic.pc+int64(i)]
 		if flag == 0 && opcode.argflags[i-1] == 'r' {
 			arg = ic.mem[arg]
 		}
@@ -236,9 +236,9 @@ func (ic *Intcode) RunInstruction() (done bool, err error) {
 }
 
 // RunProgram is a method on *IntCode
-func (ic *Intcode) RunProgram(inputs []int) (output []int, err error) {
+func (ic *Intcode) RunProgram(inputs []int64) (output []int64, err error) {
 	if inputs == nil {
-		inputs = make([]int, 0)
+		inputs = make([]int64, 0)
 	}
 	ic.inputs = inputs
 	var done bool
@@ -249,7 +249,7 @@ func (ic *Intcode) RunProgram(inputs []int) (output []int, err error) {
 }
 
 // RunProgramChannelMode runs an intcode program in channel mode
-func (ic *Intcode) RunProgramChannelMode(in, out chan int, err chan error, done chan bool) {
+func (ic *Intcode) RunProgramChannelMode(in, out chan int64, err chan error, done chan bool) {
 	ic.UseChannels = true
 	ic.inchan = in
 	ic.outchan = out

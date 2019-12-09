@@ -21,7 +21,7 @@ func solveDay5(pr *PuzzleRun) {
 	}
 	ic.AddStandardOpcodes()
 	pr.ReportLoad()
-	outputs, err := ic.RunProgram([]int{1})
+	outputs, err := ic.RunProgram([]int64{1})
 	pr.ReportPart("Part1", outputs, err)
 
 	ic, err = NewIntcodeFromInput(program)
@@ -29,6 +29,6 @@ func solveDay5(pr *PuzzleRun) {
 		pr.logger.Fatal(err)
 	}
 	ic.AddStandardOpcodes()
-	outputs, err = ic.RunProgram([]int{5})
+	outputs, err = ic.RunProgram([]int64{5})
 	pr.ReportPart("Part2", outputs, err)
 }

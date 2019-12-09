@@ -16,5 +16,6 @@ func solveDay9(pr *PuzzleRun) {
 		pr.logger.Fatal(err)
 	}
 	pr.ReportLoad()
+	pr.logger.Println(program)
 
 }

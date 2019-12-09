@@ -9,25 +9,26 @@ func init() {
 
 }
 
-func permNumber(perm []int) int {
-	num := 0
+func permNumber(perm []int64) int64 {
+	var num int64
 	for _, v := range perm {
 		num = num*10 + v
 	}
 	return num
 }
 
-func permutations(start, stop int) (permList [][]int) {
-	base := make([]int, stop-start+1)
+func permutations(start, stop int64) (permList [][]int64) {
+	base := make([]int64, stop-start+1)
 	for i := 0; i < len(base); i++ {
-		base[i] = i + start
+		j := int64(i)
+		base[j] = j + start
 	}
-	var rc func([]int, int)
-	rc = func(a []int, k int) {
-		if k == len(a) {
-			permList = append(permList, append([]int{}, a...))
+	var rc func([]int64, int64)
+	rc = func(a []int64, k int64) {
+		if k == int64(len(a)) {
+			permList = append(permList, append([]int64{}, a...))
 		} else {
-			for i := k; i < len(base); i++ {
+			for i := k; i < int64(len(base)); i++ {
 				a[k], a[i] = a[i], a[k]
 				rc(a, k+1)
 				a[k], a[i] = a[i], a[k]
@@ -51,13 +52,12 @@ func solveDay7(pr *PuzzleRun) {
 	permList2 := permutations(5, 9)
 	pr.ReportLoad()
 
-	max := 0
-	maxPerm := 0
+	var max, maxPerm int64
 
 	for _, perm := range permList1 {
-		signalchans := make([]chan int, len(perm)+1)
+		signalchans := make([]chan int64, len(perm)+1)
 		for i := 0; i < len(signalchans); i++ {
-			signalchans[i] = make(chan int, 2)
+			signalchans[i] = make(chan int64, 2)
 		}
 		errorchan := make(chan error)
 		donechan := make(chan bool)
@@ -88,9 +88,9 @@ func solveDay7(pr *PuzzleRun) {
 	maxPerm = 0
 	for _, perm := range permList2 {
 		//fmt.Println("Trying perm", perm)
-		signalchans := make([]chan int, len(perm))
+		signalchans := make([]chan int64, len(perm))
 		for i := 0; i < len(signalchans); i++ {
-			signalchans[i] = make(chan int, 2)
+			signalchans[i] = make(chan int64, 2)
 		}
 		errorchan := make(chan error)
 		donechan := make(chan bool)

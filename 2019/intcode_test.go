@@ -12,7 +12,11 @@ func TestSampleIntcodeDay2Sample1(t *testing.T) {
 	assert.Nil(t, err)
 	ic.AddStandardOpcodes()
 	ic.RunProgram(nil)
-	expected := []int{3500, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50}
+	expected := map[int64]int64{
+		0: 3500, 1: 9, 2: 10,
+		3: 70, 4: 2, 5: 3, 6: 11,
+		7: 0, 8: 99, 9: 30, 10: 40,
+		11: 50}
 	assert.Equal(t, ic.mem, expected)
 }
 
@@ -24,7 +28,7 @@ func TestSampleIntcodeDay2Input(t *testing.T) {
 	ic.mem[1] = 12
 	ic.mem[2] = 2
 	ic.RunProgram(nil)
-	expected := 6627023
+	var expected int64 = 6627023
 	assert.Equal(t, ic.mem[0], expected)
 }
 
@@ -42,9 +46,9 @@ func TestIntcodeDay5Sample1(t *testing.T) {
 	ic, err := NewIntcodeFromInput(program)
 	assert.Nil(t, err)
 	ic.AddStandardOpcodes()
-	outputs, err := ic.RunProgram([]int{12345})
+	outputs, err := ic.RunProgram([]int64{12345})
 	assert.Nil(t, err)
-	assert.Equal(t, outputs, []int{12345})
+	assert.Equal(t, outputs, []int64{12345})
 }
 
 func TestIntcodeDay5Sample2(t *testing.T) {
@@ -54,8 +58,8 @@ func TestIntcodeDay5Sample2(t *testing.T) {
 	ic.AddStandardOpcodes()
 	outputs, err := ic.RunProgram(nil)
 	assert.Nil(t, err)
-	assert.Equal(t, outputs, []int{})
-	assert.Equal(t, ic.mem, []int{1002, 4, 3, 4, 99})
+	assert.Equal(t, outputs, []int64{})
+	assert.Equal(t, ic.mem, map[int64]int64{0: 1002, 1: 4, 2: 3, 3: 4, 4: 99})
 }
 
 func TestIntcodeDay5Sample3(t *testing.T) {
@@ -65,6 +69,6 @@ func TestIntcodeDay5Sample3(t *testing.T) {
 	ic.AddStandardOpcodes()
 	outputs, err := ic.RunProgram(nil)
 	assert.Nil(t, err)
-	assert.Equal(t, outputs, []int{})
-	assert.Equal(t, ic.mem, []int{1101, 100, -1, 4, 99})
+	assert.Equal(t, outputs, []int64{})
+	assert.Equal(t, ic.mem, map[int64]int64{0: 1101, 1: 100, 2: -1, 3: 4, 4: 99})
 }
