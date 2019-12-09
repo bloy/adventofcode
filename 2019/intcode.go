@@ -142,6 +142,9 @@ func opcodeEqual(ic *Intcode, positions []int64) (done bool, err error) {
 }
 
 func opcodeRelBase(ic *Intcode, positions []int64) (done bool, err error) {
+	if ic.Verbose {
+		fmt.Println("RBAD", positions)
+	}
 	in := positions[0]
 	ic.relBase += in
 	ic.pc += 2

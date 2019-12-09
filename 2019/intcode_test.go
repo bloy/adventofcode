@@ -72,3 +72,53 @@ func TestIntcodeDay5Sample3(t *testing.T) {
 	assert.Equal(t, outputs, []int64{})
 	assert.Equal(t, ic.mem, map[int64]int64{0: 1101, 1: 100, 2: -1, 3: 4, 4: 99})
 }
+
+func TestIntcodeDay9Sample1(t *testing.T) {
+	program := "1101,100,23,1985,109,2000,109,19,204,-34,99"
+	ic, err := NewIntcodeFromInput(program)
+	assert.Nil(t, err)
+	ic.AddStandardOpcodes()
+	outputs, err := ic.RunProgram([]int64{})
+	assert.Nil(t, err)
+	assert.Equal(t, []int64{123}, outputs)
+}
+
+func TestIntcodeDay9Sample2(t *testing.T) {
+	program := "109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99"
+	ic, err := NewIntcodeFromInput(program)
+	assert.Nil(t, err)
+	ic.AddStandardOpcodes()
+	outputs, err := ic.RunProgram([]int64{})
+	assert.Nil(t, err)
+	expected := []int64{
+		109, 1,
+		204, -1,
+		1001, 100, 1, 100,
+		1008, 100, 16,
+		101, 1006,
+		101, 0,
+		99}
+	assert.Equal(t, outputs, expected)
+}
+
+func TestIntcodeDay9Sample3(t *testing.T) {
+	program := "1102,34915192,34915192,7,4,7,99,0"
+	ic, err := NewIntcodeFromInput(program)
+	assert.Nil(t, err)
+	ic.AddStandardOpcodes()
+	outputs, err := ic.RunProgram([]int64{})
+	assert.Nil(t, err)
+	var expected int64 = 1219070632396864
+	assert.Equal(t, outputs, []int64{expected})
+}
+
+func TestIntcodeDay9Sample4(t *testing.T) {
+	program := "104,1125899906842624,99"
+	ic, err := NewIntcodeFromInput(program)
+	assert.Nil(t, err)
+	ic.AddStandardOpcodes()
+	outputs, err := ic.RunProgram([]int64{})
+	assert.Nil(t, err)
+	var expected int64 = 1125899906842624
+	assert.Equal(t, outputs, []int64{expected})
+}
