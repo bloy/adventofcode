@@ -141,9 +141,17 @@ func opcodeEqual(ic *Intcode, positions []int64) (done bool, err error) {
 	return
 }
 
+func opcodeRelBase(ic *Intcode, positions []int64) (done bool, err error) {
+	in := positions[0]
+	ic.relBase += in
+	ic.pc += 2
+	return
+}
+
 // Intcode holds data and state for a running AoC 2019 intcode simulator
 type Intcode struct {
 	pc          int64                   // program counter
+	relBase     int64                   // relative base
 	mem         map[int64]int64         // memory
 	opcodes     map[int64]intcodeopcode // list of understood opcodes
 	output      []int64
@@ -199,6 +207,7 @@ func (ic *Intcode) AddStandardOpcodes() {
 	ic.AddOpcode(6, 2, "rr", opcodeJumpIfFalse) // JMPF
 	ic.AddOpcode(7, 3, "rrw", opcodeLessThan)   // LT
 	ic.AddOpcode(8, 3, "rrw", opcodeEqual)      // EQ
+	ic.AddOpcode(9, 1, "r", opcodeRelBase)      // RBAD
 }
 
 // AddOpcode adds an opcode to the existing opcodes
@@ -223,8 +232,10 @@ func (ic *Intcode) RunInstruction() (done bool, err error) {
 		flag := ocflags % 10
 		ocflags = ocflags / 10
 		arg := ic.mem[ic.pc+int64(i)]
-		if flag == 0 && opcode.argflags[i-1] == 'r' {
+		if flag == 0 && opcode.argflags[i-1] == 'r' { // Position mode
 			arg = ic.mem[arg]
+		} else if flag == 2 && opcode.argflags[i-1] == 'r' { // relative mode
+			arg = ic.mem[arg+ic.relBase]
 		}
 		args[i-1] = arg
 	}
