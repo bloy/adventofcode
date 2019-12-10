@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"strings"
+)
+
 // 2d Direction vectors
 var (
 	North = Point{X: 0, Y: -1}
@@ -41,6 +46,7 @@ func (p Point) Add(v Point) Point {
 // Grid is a sparse grid of runes
 type Grid struct {
 	values             map[Point]rune
+	blank              rune
 	minPoint, maxPoint Point
 }
 
@@ -48,8 +54,14 @@ type Grid struct {
 func NewGrid() *Grid {
 	g := &Grid{
 		values: make(map[Point]rune),
+		blank:  '.',
 	}
 	return g
+}
+
+// SetBlank sets the blank rune for a grid
+func (g *Grid) SetBlank(r rune) {
+	g.blank = r
 }
 
 // SetPoint sets the point specified and returns the previous value if any
@@ -73,10 +85,28 @@ func (g *Grid) SetPoint(p Point, value rune) rune {
 
 // GetPoint gets the value of the grid at p
 func (g *Grid) GetPoint(p Point) rune {
-	return g.values[p]
+	r, ok := g.values[p]
+	if ok {
+		return r
+	}
+	return g.blank
 }
 
 // Bounds returns the minimum and maximum points that bound this grid
 func (g *Grid) Bounds() (minPoint, maxPoint Point) {
 	return g.minPoint, g.maxPoint
+}
+
+// String implements the Stringer interface
+func (g *Grid) String() string {
+	b := strings.Builder{}
+	min, max := g.Bounds()
+	for y := min.Y; y <= max.Y; y++ {
+		for x := min.X; x <= max.X; x++ {
+			p := Point{X: x, Y: y}
+			fmt.Fprint(&b, string(g.GetPoint(p)))
+		}
+		fmt.Fprint(&b, "\n")
+	}
+	return b.String()
 }
