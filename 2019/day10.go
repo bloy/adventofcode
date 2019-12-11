@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"math"
 	"sort"
-	"time"
 
+	"github.com/fatih/color"
 	"github.com/k0kubun/go-ansi"
 )
 
@@ -94,6 +94,10 @@ func solveDay10(pr *PuzzleRun) {
 	destroyed := make([]Point, 0, len(asteroids))
 	_, maxPoint := grid.Bounds()
 	grid.SetPoint(base, '@')
+	color.Output = ansi.NewAnsiStdout()
+	grid.AddRuneColor('.', color.New(color.FgHiBlack))
+	grid.AddRuneColor('@', color.New(color.FgHiYellow))
+	grid.AddRuneColor('#', color.New(color.FgRed))
 	var target Point
 	for len(destroyed) < len(asteroids)-1 {
 		for _, angle := range angles {
@@ -103,11 +107,11 @@ func solveDay10(pr *PuzzleRun) {
 				destroyed = append(destroyed, a)
 				grid.SetPoint(a, '.')
 				ansi.CursorPreviousLine(maxPoint.Y + 1)
-				ansi.Print(grid.String())
+				grid.ColorPrint()
 				if len(destroyed) == 200 {
 					target = a
 				}
-				time.Sleep(time.Millisecond * 10)
+				//time.Sleep(time.Millisecond * 10)
 			}
 		}
 	}

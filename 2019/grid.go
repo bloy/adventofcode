@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"strings"
+
+	"github.com/fatih/color"
 )
 
 // 2d Direction vectors
@@ -48,13 +50,15 @@ type Grid struct {
 	values             map[Point]rune
 	blank              rune
 	minPoint, maxPoint Point
+	runeColor          map[rune]*color.Color
 }
 
 // NewGrid creates a new grid
 func NewGrid() *Grid {
 	g := &Grid{
-		values: make(map[Point]rune),
-		blank:  '.',
+		values:    make(map[Point]rune),
+		runeColor: make(map[rune]*color.Color),
+		blank:     '.',
 	}
 	return g
 }
@@ -109,4 +113,26 @@ func (g *Grid) String() string {
 		fmt.Fprint(&b, "\n")
 	}
 	return b.String()
+}
+
+// AddRuneColor adds a color that a rune should be
+func (g *Grid) AddRuneColor(r rune, c *color.Color) {
+	g.runeColor[r] = c
+}
+
+// ColorPrint prints in color directly to stdout
+func (g *Grid) ColorPrint() {
+	min, max := g.Bounds()
+	defColor := color.New(color.Reset)
+	for y := min.Y; y <= max.Y; y++ {
+		for x := min.X; x <= max.X; x++ {
+			c := g.GetPoint(Point{X: x, Y: y})
+			attrs, ok := g.runeColor[c]
+			if !ok {
+				attrs = defColor
+			}
+			attrs.Print(string(c))
+		}
+		defColor.Print("\n")
+	}
 }
