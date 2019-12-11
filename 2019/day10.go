@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"math"
 	"sort"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/k0kubun/go-ansi"
@@ -70,7 +71,10 @@ func solveDay10(pr *PuzzleRun) {
 			continue
 		}
 		d := Point{X: a.X - base.X, Y: a.Y - base.Y}
-		at := math.Atan2(float64(d.Y), float64(d.X)) + 2*math.Pi - math.Pi/2
+		at := math.Atan2(float64(d.Y), float64(d.X)) + math.Pi/2
+		if at < 0 {
+			at = at + math.Pi*2
+		}
 		if _, ok := byAngle[at]; !ok {
 			angles = append(angles, at)
 			byAngle[at] = make([]Point, 0)
@@ -78,7 +82,7 @@ func solveDay10(pr *PuzzleRun) {
 		byAngle[at] = append(byAngle[at], a)
 	}
 	sort.Slice(angles, func(i, j int) bool {
-		return angles[i] > angles[j]
+		return angles[i] < angles[j]
 	})
 	for a := range byAngle {
 		sort.Slice(byAngle[a], func(i, j int) bool {
@@ -90,7 +94,6 @@ func solveDay10(pr *PuzzleRun) {
 		})
 	}
 
-	pr.logger.Print(grid)
 	destroyed := make([]Point, 0, len(asteroids))
 	_, maxPoint := grid.Bounds()
 	grid.SetPoint(base, '@')
@@ -98,6 +101,9 @@ func solveDay10(pr *PuzzleRun) {
 	grid.AddRuneColor('.', color.New(color.FgHiBlack))
 	grid.AddRuneColor('@', color.New(color.FgHiYellow))
 	grid.AddRuneColor('#', color.New(color.FgRed))
+	grid.ColorPrint()
+	time.Sleep(time.Millisecond * 500)
+
 	var target Point
 	for len(destroyed) < len(asteroids)-1 {
 		for _, angle := range angles {
@@ -111,7 +117,7 @@ func solveDay10(pr *PuzzleRun) {
 				if len(destroyed) == 200 {
 					target = a
 				}
-				//time.Sleep(time.Millisecond * 10)
+				time.Sleep(time.Millisecond * 10)
 			}
 		}
 	}
