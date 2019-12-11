@@ -42,6 +42,9 @@ func solveDay11(pr *PuzzleRun) {
 			fmt.Println("RIN ", positions)
 		}
 		c := grid.GetPoint(pos)
+		if ic.Verbose {
+			fmt.Println(string(c), "at position", pos)
+		}
 		o := positions[0]
 		if c == '#' {
 			ic.mem[o] = 1
@@ -55,7 +58,7 @@ func solveDay11(pr *PuzzleRun) {
 	expectColorOutput := true
 	robotOutputOpcode := func(ic *Intcode, positions []int64) (done bool, err error) {
 		if ic.Verbose {
-			fmt.Println("ROUT", positions)
+			fmt.Println("ROUT", positions, expectColorOutput)
 		}
 		in := positions[0]
 		if expectColorOutput {
@@ -70,6 +73,7 @@ func solveDay11(pr *PuzzleRun) {
 			dir = turns[dir][in]
 			pos = Point{X: pos.X + dir.X, Y: pos.Y + dir.Y}
 		}
+		ic.pc += 2
 		return
 	}
 
@@ -77,5 +81,25 @@ func solveDay11(pr *PuzzleRun) {
 	comp.AddOpcode(4, 1, "r", robotOutputOpcode)
 	//comp.Verbose = true
 	_, err = comp.RunProgram(nil)
+	count := len(grid.values)
+	pr.ReportPart(count)
 
+	// -----------------------------------------------------------
+
+	comp, err = NewIntcodeFromInput(program)
+	if err != nil {
+		pr.logger.Fatal(err)
+	}
+
+	grid = NewGrid()
+	dir = Up
+	pos = Point{0, 0}
+
+	comp.AddStandardOpcodes()
+	comp.AddOpcode(3, 1, "w", robotInputOpcode)
+	comp.AddOpcode(4, 1, "r", robotOutputOpcode)
+
+	grid.SetPoint(pos, '#')
+	_, err = comp.RunProgram(nil)
+	pr.ReportPart("\n" + grid.String())
 }
