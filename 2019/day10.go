@@ -4,6 +4,9 @@ import (
 	"bufio"
 	"math"
 	"sort"
+	"time"
+
+	"github.com/k0kubun/go-ansi"
 )
 
 func init() {
@@ -31,7 +34,6 @@ func solveDay10(pr *PuzzleRun) {
 	}
 	pr.ReportLoad()
 
-	pr.logger.Print(grid)
 	var (
 		bestNum   int
 		bestPoint Point
@@ -88,7 +90,10 @@ func solveDay10(pr *PuzzleRun) {
 		})
 	}
 
+	pr.logger.Print(grid)
 	destroyed := make([]Point, 0, len(asteroids))
+	_, maxPoint := grid.Bounds()
+	grid.SetPoint(base, '@')
 	var target Point
 	for len(destroyed) < len(asteroids)-1 {
 		for _, angle := range angles {
@@ -96,10 +101,13 @@ func solveDay10(pr *PuzzleRun) {
 				a := byAngle[angle][0]
 				byAngle[angle] = byAngle[angle][1:]
 				destroyed = append(destroyed, a)
-				pr.logger.Printf("%d: %v", len(destroyed), a)
+				grid.SetPoint(a, '.')
+				ansi.CursorPreviousLine(maxPoint.Y + 1)
+				ansi.Print(grid.String())
 				if len(destroyed) == 200 {
 					target = a
 				}
+				time.Sleep(time.Millisecond * 10)
 			}
 		}
 	}
