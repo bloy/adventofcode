@@ -53,6 +53,9 @@ func opcodeInput(ic *Intcode, positions []int64) (done bool, err error) {
 	}
 	var in int64
 	if ic.UseChannels {
+		if ic.UseWaitChan {
+			ic.waitchan <- true
+		}
 		in = <-ic.inchan
 	} else {
 		if len(ic.inputs) < 1 {
@@ -161,7 +164,9 @@ type Intcode struct {
 	outchan     chan int64
 	inputs      []int64
 	inchan      chan int64
+	waitchan    chan bool
 	UseChannels bool
+	UseWaitChan bool
 	Verbose     bool
 }
 
@@ -249,6 +254,12 @@ func (ic *Intcode) RunInstruction() (done bool, err error) {
 		fmt.Println("   ", ic.pc, ic.mem)
 	}
 	return
+}
+
+// SetWaitChan sets the waiting for input channel and sets UseWaitChan
+func (ic *Intcode) SetWaitChan(c chan bool) {
+	ic.UseWaitChan = (c == nil)
+	ic.waitchan = c
 }
 
 // RunProgram is a method on *IntCode
