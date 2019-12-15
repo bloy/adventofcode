@@ -50,6 +50,13 @@ func (pr *PuzzleRun) Close() {
 	}
 }
 
+// CheckError checks for a nil error
+func (pr *PuzzleRun) CheckError(err error) {
+	if err != nil {
+		pr.logger.Fatal(err)
+	}
+}
+
 // ReportLoad stores the loading time for the report
 func (pr *PuzzleRun) ReportLoad() {
 	pr.timings.load = time.Now()
