@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -80,16 +79,23 @@ func solveDay14(pr *PuzzleRun) {
 	pr.ReportPart(oreTotal)
 
 	var trillion = 1000000000000
-	var prevFuelAmt = 0
-	var fuelAmt = 1
-	for oreTotal < trillion {
-		prevFuelAmt = fuelAmt
-		prevOreTotal := oreTotal
-		oreTotal += day14oreToProduce(Ingredient{1, "FUEL"}, reactions, totals)
-		fuelAmt++
-		if fuelAmt%100000 == 0 {
-			fmt.Println(fuelAmt, oreTotal-prevOreTotal, trillion-oreTotal)
+	start, end := 0, trillion
+	guesses := 0
+	lastGuess, fuelGuess := 0, 0
+	for {
+		lastGuess = fuelGuess
+		guesses++
+		fuelGuess = (end-start)/2 + start
+		totals = make(map[string]int)
+		requiredOre := day14oreToProduce(Ingredient{Name: "FUEL", Qty: fuelGuess}, reactions, totals)
+		if requiredOre > trillion {
+			end = fuelGuess
+		} else {
+			start = fuelGuess
+		}
+		if fuelGuess == lastGuess {
+			break
 		}
 	}
-	pr.ReportPart(prevFuelAmt)
+	pr.ReportPart(fuelGuess, guesses)
 }
