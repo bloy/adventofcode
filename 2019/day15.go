@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"math"
+	"time"
 )
 
 func init() {
@@ -121,6 +122,7 @@ func solveDay15(pr *PuzzleRun) {
 		t++
 		fmt.Print("\x1b[u")
 		fmt.Print(grid)
+		time.Sleep(10 * time.Millisecond)
 	}
 	pr.ReportPart(t)
 }
