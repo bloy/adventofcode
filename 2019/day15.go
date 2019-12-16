@@ -96,4 +96,31 @@ func solveDay15(pr *PuzzleRun) {
 	fmt.Print(grid)
 	grid.SetPoint(Point{0, 0}, '.')
 	//fmt.Print("\x1b[u")
+
+	t := -1
+	o2stack := []Point{o2}
+	for len(o2stack) > 0 {
+		newStack := []Point{}
+		for _, point := range o2stack {
+			grid.SetPoint(point, 'O')
+		}
+		for _, point := range o2stack {
+			dirs := []Point{
+				point.Add(North),
+				point.Add(South),
+				point.Add(West),
+				point.Add(East),
+			}
+			for _, dir := range dirs {
+				if grid.GetPoint(dir) == '.' {
+					newStack = append(newStack, dir)
+				}
+			}
+		}
+		o2stack = newStack
+		t++
+		fmt.Print("\x1b[u")
+		fmt.Print(grid)
+	}
+	pr.ReportPart(t)
 }
