@@ -49,4 +49,11 @@ func solveDay16(pr *PuzzleRun) {
 		val = day16FFT(val)
 	}
 	pr.ReportPart(val[:8])
+
+	offsetSlice := nums[:7]
+	offset := 0
+	for i := 0; i < len(offsetSlice); i++ {
+		offset = offset*10 + offsetSlice[i]
+	}
+	pr.ReportPart(len(nums), offset, len(nums)*10000-offset)
 }
