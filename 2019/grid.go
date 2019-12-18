@@ -82,6 +82,18 @@ func (g *FixedGrid) SetPoint(p Point, value rune) rune {
 	return old
 }
 
+// AdjacentPoints returns the list of valid adjacent (NSEW) points to p
+func (g *FixedGrid) AdjacentPoints(p Point) []Point {
+	possible := []Point{p.Add(North), p.Add(South), p.Add(East), p.Add(West)}
+	actual := []Point{}
+	for _, pos := range possible {
+		if pos.X >= 0 && pos.X < g.Size.X && pos.Y >= 0 && pos.Y < g.Size.Y {
+			actual = append(actual, pos)
+		}
+	}
+	return actual
+}
+
 // String implements the Stringer interface
 func (g *FixedGrid) String() string {
 	b := strings.Builder{}
