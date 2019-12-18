@@ -45,6 +45,53 @@ func (p Point) Add(v Point) Point {
 	}
 }
 
+// FixedGrid is a fixed-size grid
+type FixedGrid struct {
+	values []rune
+	Size   Point
+}
+
+// NewFixedGrid creates a fixed grid from a newline-separated string
+func NewFixedGrid(str string) *FixedGrid {
+	lines := strings.Split(str, "\n")
+	size := Point{X: len(lines[0]), Y: len(lines)}
+	values := make([]rune, 0)
+	for _, line := range lines {
+		values = append(values, []rune(line)...)
+	}
+	return &FixedGrid{
+		values: values,
+		Size:   size,
+	}
+}
+
+func (g *FixedGrid) pointIndex(p Point) int {
+	return p.Y*g.Size.X + p.X
+}
+
+// GetPoint gets the value at point p
+func (g *FixedGrid) GetPoint(p Point) rune {
+	return g.values[g.pointIndex(p)]
+}
+
+// SetPoint sets the point specified and returns the previous value
+func (g *FixedGrid) SetPoint(p Point, value rune) rune {
+	num := g.pointIndex(p)
+	old := g.values[num]
+	g.values[num] = value
+	return old
+}
+
+// String implements the Stringer interface
+func (g *FixedGrid) String() string {
+	b := strings.Builder{}
+	for y := 0; y < g.Size.Y; y++ {
+		fmt.Fprint(&b, string(g.values[y*g.Size.X:(y+1)*g.Size.X]), "\n")
+	}
+	s := b.String()
+	return s[:len(s)-1]
+}
+
 // Grid is a sparse grid of runes
 type Grid struct {
 	values             map[Point]rune
