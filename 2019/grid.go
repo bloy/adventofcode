@@ -63,6 +63,33 @@ func NewGrid() *Grid {
 	return g
 }
 
+// NewGridFromInput takes a multiline string, building a grid out of it
+func NewGridFromInput(in string) *Grid {
+	g := NewGrid()
+	for y, line := range strings.Split(in, "\n") {
+		for x, r := range line {
+			p := Point{X: x, Y: y}
+			g.SetPoint(p, r)
+		}
+	}
+	return g
+}
+
+// Copy copies a grid into new memory
+func (g *Grid) Copy() *Grid {
+	newg := NewGrid()
+	newg.blank = g.blank
+	newg.minPoint = g.minPoint
+	newg.maxPoint = g.maxPoint
+	for k, v := range g.values {
+		newg.values[k] = v
+	}
+	for k, v := range g.runeColor {
+		newg.runeColor[k] = v
+	}
+	return newg
+}
+
 // SetBlank sets the blank rune for a grid
 func (g *Grid) SetBlank(r rune) {
 	g.blank = r
