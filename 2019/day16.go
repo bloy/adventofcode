@@ -2,7 +2,9 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"strconv"
+	"strings"
 )
 
 func init() {
@@ -11,13 +13,13 @@ func init() {
 
 var fftBasePattern = []int{0, 1, 0, -1}
 
-func day16FFT(in []int) (out []int) {
+func day16FFT(in []int, offset int) (out []int) {
 	out = make([]int, len(in))
 	pattern := fftBasePattern
 	for i := range out {
 		sum := 0
 		for j := range in {
-			mul := pattern[(j+1)/(i+1)%4]
+			mul := pattern[(j+1+offset)/(i+1)%4]
 			sum += mul * in[j]
 		}
 		if sum < 0 {
@@ -26,6 +28,14 @@ func day16FFT(in []int) (out []int) {
 		out[i] = sum % 10
 	}
 	return
+}
+
+func day16signal(slice []int) string {
+	b := strings.Builder{}
+	for i := range slice {
+		fmt.Fprintf(&b, "%d", slice[i])
+	}
+	return b.String()
 }
 
 func solveDay16(pr *PuzzleRun) {
@@ -46,14 +56,37 @@ func solveDay16(pr *PuzzleRun) {
 
 	val := nums
 	for i := 0; i < 100; i++ {
-		val = day16FFT(val)
+		val = day16FFT(val, 0)
 	}
-	pr.ReportPart(val[:8])
+	pr.ReportPart(day16signal(val[:8]))
 
-	offsetSlice := nums[:7]
+	reps := 10000
+	phases := 100
 	offset := 0
-	for i := 0; i < len(offsetSlice); i++ {
-		offset = offset*10 + offsetSlice[i]
+	for i := 0; i < 7; i++ {
+		offset = offset*10 + nums[i]
 	}
-	pr.ReportPart(len(nums), offset, len(nums)*10000-offset)
+	val = make([]int, (len(nums)*reps)-offset)
+	for i := range val {
+		val[i] = nums[(offset+i)%(len(nums))]
+	}
+	if offset < len(nums)*reps/2 {
+		pr.logger.Fatal("offset is too small", offset)
+	}
+
+	fmt.Println(len(nums), len(val))
+
+	// since we know offset > len(nums)*reps/2, all coefficients are 1
+	for phase := phases; phase > 0; phase-- {
+		sum := 0
+		for i := len(val) - 1; i >= 0; i-- {
+			sum += val[i]
+			n := sum
+			if n < 0 {
+				n = n * -1
+			}
+			val[i] = n % 10
+		}
+	}
+	pr.ReportPart(day16signal(val[:8]))
 }
