@@ -61,4 +61,31 @@ func solveDay19(pr *PuzzleRun) {
 	}
 
 	pr.ReportPart(count)
+
+	squareSize := 99
+	cur := Point{X: 44, Y: 59}
+	oppositeAdd := Point{X: squareSize, Y: -squareSize}
+	resultAdd := Point{X: 0, Y: -squareSize}
+	var found bool
+	var result Point
+	for !found {
+		// emergency breaker
+		if cur.X > 10000 || cur.Y > 10000 {
+			break
+		}
+		if getPoint(cur) == '#' {
+			opposite := cur.Add(oppositeAdd)
+			if getPoint(opposite) == '#' {
+				// both "side" corners are in the beam
+				found = true
+				result = cur.Add(resultAdd)
+			} else {
+				cur = cur.Add(Down)
+			}
+		} else {
+			cur = cur.Add(Right)
+		}
+	}
+
+	pr.ReportPart(found, result, result.X*10000+result.Y)
 }
