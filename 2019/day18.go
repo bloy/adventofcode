@@ -43,6 +43,9 @@ func solveDay18(pr *PuzzleRun) {
 	steps, err := day18Part1(mapgrid)
 	pr.CheckError(err)
 	pr.ReportPart(steps)
+	steps, err = day18Part2(mapgrid)
+	pr.CheckError(err)
+	pr.ReportPart(steps)
 }
 
 type day18Grid struct {
@@ -84,12 +87,10 @@ func day18MakeGrid(mapgrid string) *day18Grid {
 	return grid
 }
 
-func day18Part1(mapgrid string) (steps int, err error) {
-	grid := day18MakeGrid(mapgrid)
-	prev := make(map[day18State]day18State)
+func day18search(grid *day18Grid, start Point, haveKeys int) (steps int, err error) {
 	dist := make(map[day18State]int)
 	seen := make(map[day18State]bool)
-	current := day18State{pos: grid.places['@'], keys: 0}
+	current := day18State{pos: start, keys: haveKeys}
 	q := make([]day18State, 1)
 	q[0] = current
 	seen[current] = true
@@ -115,7 +116,6 @@ func day18Part1(mapgrid string) (steps int, err error) {
 			}
 			seen[next] = true
 			dist[next] = dist[current] + 1
-			prev[next] = current
 			q = append(q, next)
 			if next.keys == grid.allKeys {
 				found = true
@@ -128,4 +128,83 @@ func day18Part1(mapgrid string) (steps int, err error) {
 		return 0, fmt.Errorf("No path found")
 	}
 	return dist[foundState], nil
+}
+
+func day18Part1(mapgrid string) (steps int, err error) {
+	grid := day18MakeGrid(mapgrid)
+	steps, err = day18search(grid, grid.places['@'], 0)
+	return
+}
+
+func day18Part2(mapgrid string) (steps int, err error) {
+	grid := day18MakeGrid(mapgrid)
+	center := grid.places['@']
+	grid.SetPoint(center, '#')
+	grid.SetPoint(center.Add(North), '#')
+	grid.SetPoint(center.Add(South), '#')
+	grid.SetPoint(center.Add(East), '#')
+	grid.SetPoint(center.Add(West), '#')
+
+	steps = 0
+	haveKeys := grid.allKeys
+	for y := 0; y < center.Y; y++ {
+		for x := 0; x < center.X; x++ {
+			c := grid.GetPoint(Point{X: x, Y: y})
+			if c >= 'a' && c <= 'z' {
+				haveKeys ^= grid.bits[c]
+			}
+		}
+	}
+	quadSteps, err := day18search(grid, center.Add(Point{X: -1, Y: -1}), haveKeys)
+	if err != nil {
+		return 0, err
+	}
+	steps += quadSteps
+
+	haveKeys = grid.allKeys
+	for y := center.Y + 1; y < grid.Size.Y; y++ {
+		for x := 0; x < center.X; x++ {
+			c := grid.GetPoint(Point{X: x, Y: y})
+			if c >= 'a' && c <= 'z' {
+				haveKeys ^= grid.bits[c]
+			}
+		}
+	}
+	quadSteps, err = day18search(grid, center.Add(Point{X: -1, Y: 1}), haveKeys)
+	if err != nil {
+		return 0, err
+	}
+	steps += quadSteps
+
+	haveKeys = grid.allKeys
+	for y := 0; y < center.Y; y++ {
+		for x := center.X + 1; x < grid.Size.X; x++ {
+			c := grid.GetPoint(Point{X: x, Y: y})
+			if c >= 'a' && c <= 'z' {
+				haveKeys ^= grid.bits[c]
+			}
+		}
+	}
+	quadSteps, err = day18search(grid, center.Add(Point{X: 1, Y: -1}), haveKeys)
+	if err != nil {
+		return 0, err
+	}
+	steps += quadSteps
+
+	haveKeys = grid.allKeys
+	for y := center.Y + 1; y < grid.Size.Y; y++ {
+		for x := center.X + 1; x < grid.Size.X; x++ {
+			c := grid.GetPoint(Point{X: x, Y: y})
+			if c >= 'a' && c <= 'z' {
+				haveKeys ^= grid.bits[c]
+			}
+		}
+	}
+	quadSteps, err = day18search(grid, center.Add(Point{X: 1, Y: 1}), haveKeys)
+	if err != nil {
+		return 0, err
+	}
+	steps += quadSteps
+
+	return
 }
