@@ -23,14 +23,28 @@ func solveDay20(pr *PuzzleRun) {
 	grid := day20buildMaze(mapgrid)
 	pr.ReportLoad()
 
-	pr.logger.Println(grid.Labels)
 	pr.ReportPart(day20solveMaze(grid))
+	pr.ReportPart(day20solveRecursiveMaze(grid))
 }
 
 type day20grid struct {
 	Grid
 	Portals map[Point]Point
 	Labels  map[string][]Point
+}
+
+type day20state struct {
+	Pos   Point
+	Level int
+}
+
+func day20isOuter(grid *day20grid, p Point) bool {
+	min, max := grid.Bounds()
+	min.X += 2
+	min.Y += 2
+	max.X -= 2
+	max.Y -= 2
+	return p.X == min.X || p.X == max.X || p.Y == min.Y || p.Y == max.Y
 }
 
 func day20solveMaze(grid *day20grid) int {
@@ -61,6 +75,54 @@ func day20solveMaze(grid *day20grid) int {
 			}
 			c := grid.GetPoint(adj)
 			if c == '#' || c == ' ' {
+				continue
+			}
+			seen[adj] = true
+			dist[adj] = dist[current] + 1
+			q = append(q, adj)
+			if adj == goal {
+				found = true
+				break
+			}
+		}
+	}
+	if !found {
+		return 0
+	}
+	return dist[goal]
+}
+
+func day20solveRecursiveMaze(grid *day20grid) int {
+	start := day20state{Pos: grid.Labels["AA"][0], Level: 0}
+	goal := day20state{Pos: grid.Labels["ZZ"][0], Level: 0}
+	dist := make(map[day20state]int)
+	seen := make(map[day20state]bool)
+	q := []day20state{start}
+	dist[start] = 0
+	seen[start] = true
+	found := false
+	for len(q) > 0 && !found {
+		current := q[0]
+		q = q[1:]
+		adjList := []day20state{
+			day20state{current.Pos.Add(North), current.Level},
+			day20state{current.Pos.Add(South), current.Level},
+			day20state{current.Pos.Add(East), current.Level},
+			day20state{current.Pos.Add(West), current.Level},
+		}
+		if p, ok := grid.Portals[current.Pos]; ok {
+			if day20isOuter(grid, current.Pos) && current.Level > 0 {
+				adjList = append(adjList, day20state{Pos: p, Level: current.Level - 1})
+			} else if !day20isOuter(grid, current.Pos) {
+				adjList = append(adjList, day20state{Pos: p, Level: current.Level + 1})
+			}
+		}
+		for _, adj := range adjList {
+			if seen[adj] {
+				continue
+			}
+			c := grid.GetPoint(adj.Pos)
+			if c != '.' {
 				continue
 			}
 			seen[adj] = true
