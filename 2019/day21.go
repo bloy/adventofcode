@@ -29,10 +29,7 @@ func solveDay21(pr *PuzzleRun) {
 	}
 	pr.ReportLoad()
 
-	pr.ReportPart(day21part1(pr, program))
-}
-
-var day21part1script = `NOT A J
+	var script1 = `NOT A J
 NOT B T
 OR T J
 NOT C T
@@ -41,8 +38,28 @@ AND D J
 WALK
 `
 
-func day21part1(pr *PuzzleRun, program string) int64 {
-	in := make(chan int64, len(day21part1script))
+	var script2 = `NOT F J
+OR E J
+OR H J
+AND D J
+NOT C T
+AND T J
+NOT D T
+OR B T
+OR E T
+NOT T T
+OR T J
+NOT A T
+OR T J
+RUN
+`
+
+	pr.ReportPart(day21runpart(pr, program, script1))
+	pr.ReportPart(day21runpart(pr, program, script2))
+}
+
+func day21runpart(pr *PuzzleRun, program, script string) int64 {
+	in := make(chan int64, len(script))
 	out := make(chan int64)
 	errc := make(chan error)
 	done := make(chan bool)
@@ -72,7 +89,7 @@ func day21part1(pr *PuzzleRun, program string) int64 {
 		default:
 			if !sentInput {
 				sentInput = true
-				for _, c := range day21part1script {
+				for _, c := range script {
 					in <- int64(c)
 					fmt.Print(string(c))
 				}
